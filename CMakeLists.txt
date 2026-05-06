@@ -11,4 +11,6 @@ add_executable(
   src/main.cpp
   src/generate.cpp
   src/output.cpp
+  src/dispatch.cpp
+  src/distance.cpp
 )

@@ -38,7 +38,7 @@ Hospital generate_hospital(Bounds b, std::mt19937 &gen) {
   int id = generate_id();
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
-  std::uniform_int_distribution<int> capacity(100, 200);
+  std::uniform_int_distribution<int> capacity(1, 5);
 
   int c = capacity(gen);
   Location l = {
@@ -48,6 +48,7 @@ Hospital generate_hospital(Bounds b, std::mt19937 &gen) {
 
   Hospital h = {
     id,
+    0,
     c,
     l
   };
