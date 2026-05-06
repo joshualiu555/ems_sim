@@ -14,11 +14,14 @@ enum class CallPriority {
   Bravo,
   Charlie,
   Delta,
-  Echo
+  Echo,
+  Unknown
 };
 
 struct Call {
   int id;
+  int hour;
+  int minute;
   CallPriority priority;
   std::string description;
   Location location;

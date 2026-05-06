@@ -4,30 +4,7 @@
 
 #include "generate.hpp"
 #include "models.hpp"
-
-std::ostream& operator<<(std::ostream& os, AmbulanceStatus as) {
-  switch (as) {
-    case AmbulanceStatus::Available: 
-      return os << "Available";
-    case AmbulanceStatus::Transporting: 
-      return os << "Transporting";
-    case AmbulanceStatus::OutOfService: 
-      return os << "Out of Service";
-    default: 
-      return os << "Unknown";
-  }
-}
-
-std::ostream& operator<<(std::ostream& os, AmbulanceType at) {
-  switch (at) {
-    case AmbulanceType::ALS: 
-      return os << "ALS";
-    case AmbulanceType::BLS: 
-      return os << "BLS";
-    default: 
-      return os << "Unknown";
-  }
-}
+#include "output.hpp"
 
 int main() {
   std::cout << "EMS Dispatch System Simulator" << std::endl;
@@ -42,10 +19,38 @@ int main() {
     ambulances.push_back(generate_ambulance(b, gen));
   }
 
+  std::vector<Hospital> hospitals;
+  for (int i = 0; i < 5; i++) {
+    hospitals.push_back(generate_hospital(b, gen));
+  }
+
+  std::vector<Call> calls;
+  for (int i = 0; i < 10; i++) {
+    calls.push_back(generate_call(b, gen));
+  }
+
   for (Ambulance a : ambulances) {
     std::cout << "Ambulance ID: " << a.id << '\n';
     std::cout << "Ambulance Status: " << a.ambulance_status << '\n';
     std::cout << "Ambulance Type: " << a.ambulance_type << '\n';
     std::cout << "Ambulance Location: " << a.location.lat << ' ' << a.location.lon << '\n';
+  }
+
+  std::cout << '\n';
+
+  for (Hospital h : hospitals) {
+    std::cout << "Hospital ID: " << h.id << '\n';
+    std::cout << "Hospital Capacity: " << h.capacity << '\n';
+    std::cout << "Hospital Location: " << h.location.lat << ' ' << h.location.lon << '\n';
+  }
+
+  std::cout << '\n';
+
+  for (Call c : calls) {
+    std::cout << "Call ID: " << c.id << '\n';
+    std::cout << "Hour: " << c.hour << '\n';
+    std::cout << "Minute: " << c.minute << '\n';
+    std::cout << "Call Priority: " << c.priority << '\n';
+    std::cout << "Location: " << c.location.lat << ' ' << c.location.lon << '\n';
   }
 }

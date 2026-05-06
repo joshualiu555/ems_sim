@@ -10,6 +10,9 @@ struct Bounds {
 };
 
 int generate_id();
+
 Ambulance generate_ambulance(Bounds b, std::mt19937 &gen);
+
 Hospital generate_hospital(Bounds b, std::mt19937 &gen);
-// generate_call();
+
+Call generate_call(Bounds b, std::mt19937 &gen);

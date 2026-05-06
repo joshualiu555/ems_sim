@@ -10,4 +10,5 @@ add_executable(
   main
   src/main.cpp
   src/generate.cpp
+  src/output.cpp
 )
