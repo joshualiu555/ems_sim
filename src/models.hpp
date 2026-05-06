@@ -1,15 +1,15 @@
+#pragma once
+
 #include <string>
 
-struct Location
-{
+struct Location {
   double lat;
   double lon;
 };
 
 // Call
 
-enum class CallPriority
-{
+enum class CallPriority {
   Alpha,
   Bravo,
   Charlie,
@@ -17,31 +17,28 @@ enum class CallPriority
   Echo
 };
 
-struct Call
-{
-  std::string id;
+struct Call {
+  int id;
   CallPriority priority;
+  std::string description;
   Location location;
 };
 
 // Ambulance
 
-enum class AmbulanceStatus
-{
+enum class AmbulanceStatus {
   Available,
   Transporting,
   OutOfService
 };
 
-enum class AmbulanceType
-{
+enum class AmbulanceType {
   ALS,
   BLS
 };
 
-struct Ambulance
-{
-  std::string id;
+struct Ambulance {
+  int id;
   AmbulanceStatus ambulance_status;
   AmbulanceType ambulance_type;
   Location location;
@@ -49,18 +46,16 @@ struct Ambulance
 
 // Hospital
 
-struct Hospital
-{
-  std::string id;
+struct Hospital {
+  int id;
   int capacity;
   Location location;
 };
 
 // Dispatch
 
-struct Dispatch
-{
-  std::string call_id;
-  std::string ambulance_id;
-  std::string hospital_id;
+struct Dispatch {
+  int call_id;
+  int ambulance_id;
+  int hospital_id;
 };
