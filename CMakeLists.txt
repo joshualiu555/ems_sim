@@ -12,5 +12,7 @@ add_executable(
   src/generate.cpp
   src/output.cpp
   src/dispatch.cpp
-  src/distance.cpp
+  src/utility.cpp
+  src/simulation.cpp
+  src/logs.cpp
 )

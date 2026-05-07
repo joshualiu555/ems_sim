@@ -1,4 +1,10 @@
 # ems_sim
 
+Generally refactor after phase 1 is complete
+
+## Features
 - Distribute ambulances and hospitals more evenly
-- ALS can take any call priority; BLS can only take Alpha and Bravo
+- Allow ambulance to take another call from anywhere - keep track of live locations
+
+## Refactoring
+- Split models.hpp into separate files within a folder
