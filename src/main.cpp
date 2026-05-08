@@ -8,11 +8,11 @@
 #include "models/hospital.hpp"
 #include "models/call.hpp"
 
-#include "generate.hpp"
-#include "output.hpp"
-#include "dispatch.hpp"
-#include "simulation.hpp"
-#include "logs.hpp"
+#include "logic/dispatch.hpp"
+#include "logic/simulation.hpp"
+#include "util/generate.hpp"
+#include "io/output.hpp"
+#include "io/logs.hpp"
 
 int main() {
   std::cout << "EMS Dispatch System Simulator" << std::endl;

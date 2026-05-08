@@ -3,16 +3,16 @@
 #include <unordered_map>
 #include <iostream>
 
-#include "models/call.hpp"
-#include "models/event.hpp"
-#include "models/ambulance.hpp"
-#include "models/hospital.hpp"
+#include "../models/call.hpp"
+#include "../models/event.hpp"
+#include "../models/ambulance.hpp"
+#include "../models/hospital.hpp"
 
-#include "utility.hpp"
+#include "../util/utility.hpp"
 #include "dispatch.hpp"
 #include "simulation.hpp"
-#include "logs.hpp"
-#include "output.hpp"
+#include "../io/logs.hpp"
+#include "../io/output.hpp"
 
 std::priority_queue<Event> pq;
 int hour = 0, minute = 0;

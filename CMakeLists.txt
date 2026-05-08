@@ -9,10 +9,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(
   main
   src/main.cpp
-  src/generate.cpp
-  src/output.cpp
-  src/dispatch.cpp
-  src/utility.cpp
-  src/simulation.cpp
-  src/logs.cpp
+  src/logic/dispatch.cpp
+  src/logic/simulation.cpp
+  src/util/generate.cpp
+  src/util/utility.cpp
+  src/io/output.cpp
+  src/io/logs.cpp
 )

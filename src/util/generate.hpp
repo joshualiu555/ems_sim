@@ -1,9 +1,11 @@
+#pragma once
+
 #include <random>
 
-#include "models/ambulance.hpp"
-#include "models/hospital.hpp"
-#include "models/call.hpp"
-#include "models/helper.hpp"
+#include "../models/ambulance.hpp"
+#include "../models/hospital.hpp"
+#include "../models/call.hpp"
+#include "../models/helper.hpp"
 
 struct Bounds {
   int lat_west;
