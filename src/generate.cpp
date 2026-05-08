@@ -4,7 +4,11 @@
 #include <utility>
 #include <string>
 
-#include "models.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
+#include "models/call.hpp"
+#include "models/helper.hpp"
+
 #include "generate.hpp"
 #include "utility.hpp"
 

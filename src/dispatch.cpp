@@ -2,8 +2,12 @@
 #include <optional>
 #include <unordered_map>
 
+#include "models/ambulance.hpp"
+#include "models/dispatch.hpp"
+#include "models/hospital.hpp"
+#include "models/call.hpp"
+
 #include "dispatch.hpp"
-#include "models.hpp"
 #include "utility.hpp"
 
 std::optional<Dispatch> create_dispatch(Call &c, std::unordered_map<int, Ambulance> &all_ambulances, std::unordered_map<int, Hospital> &all_hospitals) {

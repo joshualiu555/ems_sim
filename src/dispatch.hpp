@@ -4,7 +4,10 @@
 #include <optional>
 #include <unordered_map>
 
-#include "models.hpp"
+#include "models/ambulance.hpp"
+#include "models/dispatch.hpp"
+#include "models/hospital.hpp"
+#include "models/call.hpp"
 
 std::optional<Dispatch> create_dispatch(Call &c, std::unordered_map<int, Ambulance> &all_ambulances, std::unordered_map<int, Hospital> &all_hospitals);
 std::vector<Ambulance> find_available_ambulances(Call &c, std::unordered_map<int, Ambulance> &all_ambulances);

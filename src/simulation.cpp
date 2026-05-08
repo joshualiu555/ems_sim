@@ -3,7 +3,11 @@
 #include <unordered_map>
 #include <iostream>
 
-#include "models.hpp"
+#include "models/call.hpp"
+#include "models/event.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
+
 #include "utility.hpp"
 #include "dispatch.hpp"
 #include "simulation.hpp"

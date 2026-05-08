@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
 
+#include "models/event.hpp"
+
 #include "logs.hpp"
-#include "models.hpp"
 #include "output.hpp"
 
 int num_calls = 0;

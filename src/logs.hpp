@@ -1,6 +1,6 @@
 #pragma once
 
-#include "models.hpp"
+#include "models/event.hpp"
 
 void log_event(Event e);
 void log_call();

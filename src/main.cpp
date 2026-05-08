@@ -4,8 +4,11 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
+#include "models/call.hpp"
+
 #include "generate.hpp"
-#include "models.hpp"
 #include "output.hpp"
 #include "dispatch.hpp"
 #include "simulation.hpp"
@@ -14,7 +17,6 @@
 int main() {
   std::cout << "EMS Dispatch System Simulator" << std::endl;
 
-  // call loop
   Bounds b = {-100, 100, -100, 100};
   std::random_device rd;
   std::mt19937 gen(rd());
