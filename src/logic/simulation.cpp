@@ -17,7 +17,7 @@
 
 Simulation::Simulation(std::unordered_map<int, Call> &calls, std::unordered_map<int, Ambulance> &ambulances, std::unordered_map<int, Hospital> &hospitals)
   : calls(calls), ambulances(ambulances), hospitals(hospitals) 
-  {}
+{}
 
 void Simulation::init() {
   for (const auto& [id, c] : calls) {

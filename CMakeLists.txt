@@ -39,13 +39,15 @@ target_link_libraries(main PRIVATE engine)
 
 enable_testing()
 
-add_executable(tests
+add_executable(
+  tests
   tests/test_util.cpp
   tests/test_dispatch.cpp
   tests/test_simulation.cpp
 )
 
-target_link_libraries(tests 
+target_link_libraries(
+  tests 
   PRIVATE
   engine
   GTest::gtest_main
