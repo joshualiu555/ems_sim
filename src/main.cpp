@@ -39,7 +39,6 @@ int main() {
     calls[c.id] = c;
   }
 
-  run(calls, ambulances, hospitals);
-
-  output_metrics();
+  Simulation simulation(calls, ambulances, hospitals);
+  simulation.run();
 }

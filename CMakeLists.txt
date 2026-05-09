@@ -19,6 +19,7 @@ add_executable(
   src/main.cpp
   src/logic/dispatch.cpp
   src/logic/simulation.cpp
+  src/logic/handle_event.cpp
   src/util/generate.cpp
   src/util/utility.cpp
   src/io/output.cpp
@@ -37,6 +38,7 @@ add_executable(
 
   src/logic/dispatch.cpp
   src/logic/simulation.cpp
+  src/logic/handle_event.cpp
   src/util/generate.cpp
   src/util/utility.cpp
   src/io/output.cpp
