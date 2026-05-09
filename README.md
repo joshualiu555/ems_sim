@@ -5,3 +5,5 @@
 - Allow ambulance to take another call from anywhere - keep track of live locations
 
 ## Refactoring
+
+- Clean up CMakeLists.txt
