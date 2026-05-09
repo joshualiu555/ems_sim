@@ -1,6 +1,7 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
+#include <climits>
 
 #include "../models/ambulance.hpp"
 #include "../models/dispatch.hpp"
