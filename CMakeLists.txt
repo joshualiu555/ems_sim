@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED YES)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 project(ems_sim)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
@@ -16,49 +16,41 @@ FetchContent_Declare(
 
 FetchContent_Declare(
   libpqxx
-  GIT_REPOSITORY https://github.com/jtv/libpqxx.git
-  GIT_TAG        master
+  URL https://github.com/jtv/libpqxx/archive/8.0.1.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
+
 FetchContent_MakeAvailable(googletest libpqxx)
 
 add_library(engine STATIC
   src/logic/dispatch.cpp
-  src/logic/simulation.cpp
   src/logic/handle_event.cpp
-  src/util/generate.cpp
+  src/logic/simulation.cpp
   src/util/convert.cpp
+  src/util/generate.cpp
   src/util/utility.cpp
-  src/io/output.cpp
   src/io/logs.cpp
-)
-
-add_library(db STATIC
-  src/db/postgres.cpp
+  src/io/output.cpp
   src/config/config.cpp
+  src/db/postgres.cpp
 )
 
 target_include_directories(engine PUBLIC src)
-target_include_directories(db PUBLIC src)
-
 target_link_libraries(engine PUBLIC pqxx)
-target_link_libraries(db PUBLIC pqxx)
-
-target_link_libraries(engine PUBLIC db)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PRIVATE engine)
 
 enable_testing()
 
-add_executable(
-  tests
+add_executable(tests
   tests/test_util.cpp
   tests/test_dispatch.cpp
   tests/test_simulation.cpp
 )
 
 target_link_libraries(
-  tests 
+  tests
   PRIVATE
   engine
   GTest::gtest_main

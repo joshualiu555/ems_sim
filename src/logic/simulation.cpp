@@ -48,18 +48,16 @@ std::optional<Event> Simulation::create_next_event(Event &e) {
   switch(e.event_type) {
     case EventType::CallReceived:
       return handle_call_received(e, calls, ambulances, hospitals, db);
-
     case EventType::AmbulanceArriveAtScene:
       return handle_ambulance_arrive_at_scene(e, calls);
-
     case EventType::TransportStart:
       return handle_transport_start(e, calls, hospitals);
-
     case EventType::AmbulanceArriveAtHospital:
       return handle_ambulance_arrive_at_hospital(e, calls, ambulances, hospitals);
-
     case EventType::AmbulanceBackAtStation:
       return handle_ambulance_back_at_station(e, ambulances);
+    default:
+        return std::nullopt;
   }
 
   return std::nullopt;

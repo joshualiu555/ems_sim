@@ -105,6 +105,8 @@ Call generate_call(Bounds &b, std::mt19937 &gen) {
     case 5:
       c.priority = CallPriority::Alpha;
       break;
+    default:
+        break;
   }
 
   Location l = {

@@ -10,6 +10,8 @@ std::ostream &operator<<(std::ostream& os, const AmbulanceStatus &as) {
       return os << "Available";
     case AmbulanceStatus::Transporting: 
       return os << "Transporting";
+    default:
+      return os << "Unknown";
   }
 }
 
@@ -19,6 +21,8 @@ std::ostream &operator<<(std::ostream& os, const AmbulanceType &at) {
       return os << "ALS";
     case AmbulanceType::BLS: 
       return os << "BLS";
+    default:
+      return os << "Unknown";
   }
 }
 
@@ -34,6 +38,8 @@ std::ostream &operator<<(std::ostream& os, const CallPriority &cp) {
       return os << "Bravo";
     case CallPriority::Alpha: 
       return os << "Alpha";
+    default:
+      return os << "Unknown";
   }
 }
 
@@ -48,6 +54,8 @@ std::ostream &operator<<(std::ostream &os, const Event &e) {
     case EventType::AmbulanceArriveAtHospital:
       return os << "Ambulance " << e.ambulance_id << " arrived at hospital " << e.hospital_id << " at hour " << e.time.hour << " minute " << e.time.minute;
     case EventType::AmbulanceBackAtStation:
-      return os << "Ambulance " << e.ambulance_id << " arrived back at station " << e.hospital_id << " at hour " << e.time.hour << " minute " << e.time.minute; 
+      return os << "Ambulance " << e.ambulance_id << " arrived back at station " << e.hospital_id << " at hour " << e.time.hour << " minute " << e.time.minute;
+    default:
+      return os << "Unknown"; 
   }
 }
