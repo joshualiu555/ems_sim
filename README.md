@@ -7,4 +7,4 @@
 ## Refactoring
 - Create test fixtures
 - Clean up CMakeLists.txt
-- Decide between automatic vs manual DB creation
+- Automatic DB creation

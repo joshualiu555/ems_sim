@@ -14,17 +14,32 @@ jobs:
           POSTGRES_USER: ${{ secrets.DB_USER }}
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
-          -5432: 5432
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checking out repository code
         uses: actions/checkout@v6
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential postgresql-client
+
       - name: Configure
         run: cmake -S . -B build
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build      
+
+      - name: Initialize database
+        run: PGPASSWORD=${{ secrets.DB_PASSWORD }} psql -h localhost -p 5432 -U ${{ secrets.DB_USER }} -d ems_sim_test_db -f db/migrations/001_init.sql
 
       - name: Test
-        run: ctest --test-dir build
+        env:
+          POSTGRES_DB_CONNECTION_URL: postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/ems_sim_test_db
+        run: ctest --test-dir build --output-on-failure

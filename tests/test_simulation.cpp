@@ -12,6 +12,9 @@
 
 // tests full sequence of events
 TEST(SimulationTest, CompleteCall) {
+  Postgres db(get_connection_url());
+  db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
+
   std::unordered_map<int, Call> calls = {
     {1, {1, {0, 0}, CallPriority::Alpha, "", {0, 0}}}
   };
@@ -24,7 +27,9 @@ TEST(SimulationTest, CompleteCall) {
     {1, {1, 0, 10, {0, 0}}}
   };
 
-  Postgres db(get_connection_url());
+  db.execute("INSERT INTO calls (id, call_hour, call_minute, priority, description, lat, lon) VALUES (1, 0, 0, 'Alpha', 'Test Call', 0.0, 0.0);");
+  db.execute("INSERT INTO ambulances (id, status, type, lat, lon) VALUES (1, 'Available', 'BLS', 0.0, 0.0);");
+  db.execute("INSERT INTO hospitals (id, capacity, lat, lon) VALUES (1, 10, 0.0, 0.0);");
 
   Simulation sim(calls, ambulances, hospitals, db);
   sim.run();
@@ -36,6 +41,7 @@ TEST(SimulationTest, CompleteCall) {
 
 TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
   Postgres db(get_connection_url());
+  db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
 
   std::unordered_map<int, Call> calls = {
     {1, {1, {0, 0}, CallPriority::Alpha, "", {0, 0}}}
@@ -46,6 +52,10 @@ TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
   std::unordered_map<int, Hospital> hospitals = {
     {1, {1, 0, 10, {0, 0}}}
   };
+
+  db.execute("INSERT INTO calls (id, call_hour, call_minute, priority, description, lat, lon) VALUES (1, 0, 0, 'Alpha', 'Test Call', 0.0, 0.0);");
+  db.execute("INSERT INTO ambulances (id, status, type, lat, lon) VALUES (1, 'Available', 'BLS', 0.0, 0.0);");
+  db.execute("INSERT INTO hospitals (id, capacity, lat, lon) VALUES (1, 10, 0.0, 0.0);");
 
   Event e = {{0, 0}, EventType::CallReceived, 1, -1, -1};
   auto next_event = handle_call_received(e, calls, ambulances, hospitals, db);
@@ -59,6 +69,7 @@ TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
 
 TEST(HandleEventTest, CallReceivedFailure) {
   Postgres db(get_connection_url());
+  db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
 
   std::unordered_map<int, Call> calls = {
     {1, {1, {0, 0}, CallPriority::Alpha, "", {0, 0}}}
@@ -69,6 +80,10 @@ TEST(HandleEventTest, CallReceivedFailure) {
   std::unordered_map<int, Hospital> hospitals = {
     {1, {1, 0, 10, {0, 0}}}
   };
+
+  db.execute("INSERT INTO calls (id, call_hour, call_minute, priority, description, lat, lon) VALUES (1, 0, 0, 'Alpha', 'Test Call', 0.0, 0.0);");
+  db.execute("INSERT INTO ambulances (id, status, type, lat, lon) VALUES (1, 'Transporting', 'BLS', 0.0, 0.0);");
+  db.execute("INSERT INTO hospitals (id, capacity, lat, lon) VALUES (1, 10, 0.0, 0.0);");
 
   Event e = {{0, 0}, EventType::CallReceived, 1, -1, -1};
   auto next_event = handle_call_received(e, calls, ambulances, hospitals, db);

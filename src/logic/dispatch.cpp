@@ -64,7 +64,7 @@ std::vector<Hospital> find_available_hospitals(std::unordered_map<int, Hospital>
 }
 
 Ambulance find_closest_ambulance(Call &c, std::vector<Ambulance> &available_ambulances) {
-  Ambulance closest_ambulance;
+  Ambulance closest_ambulance = available_ambulances[0];
   int min_distance = INT_MAX;
   for (Ambulance a : available_ambulances) {
     int d = find_distance(a.location, c.location);
@@ -77,7 +77,7 @@ Ambulance find_closest_ambulance(Call &c, std::vector<Ambulance> &available_ambu
 }
 
 Hospital find_closest_hospital(Call &c, std::vector<Hospital> &available_hospitals) {
-  Hospital closest_hospital;
+  Hospital closest_hospital = available_hospitals[0];
   int min_distance = INT_MAX;
   for (Hospital h : available_hospitals) {
     int d = find_distance(h.location, c.location);
