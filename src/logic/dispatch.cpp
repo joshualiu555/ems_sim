@@ -11,7 +11,12 @@
 #include "dispatch.hpp"
 #include "../util/utility.hpp"
 
-std::optional<Dispatch> create_dispatch(Call &c, std::unordered_map<int, Ambulance> &all_ambulances, std::unordered_map<int, Hospital> &all_hospitals) {
+std::optional<Dispatch> create_dispatch(
+  Call &c, 
+  std::unordered_map<int, 
+  Ambulance> &all_ambulances, 
+  std::unordered_map<int, Hospital> &all_hospitals
+) {
     auto available_ambulances = find_available_ambulances(c, all_ambulances);
     if (available_ambulances.empty()) {
         return std::nullopt;

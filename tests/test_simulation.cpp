@@ -7,6 +7,9 @@
 #include "../src/models/ambulance.hpp"
 #include "../src/models/hospital.hpp"
 
+#include "../src/config/config.hpp"
+#include "../src/db/postgres.hpp"
+
 // tests full sequence of events
 TEST(SimulationTest, CompleteCall) {
   std::unordered_map<int, Call> calls = {
@@ -21,7 +24,9 @@ TEST(SimulationTest, CompleteCall) {
     {1, {1, 0, 10, {0, 0}}}
   };
 
-  Simulation sim(calls, ambulances, hospitals);
+  Postgres db(get_connection_url());
+
+  Simulation sim(calls, ambulances, hospitals, db);
   sim.run();
 
   EXPECT_EQ(ambulances[1].ambulance_status, AmbulanceStatus::Available);
@@ -30,6 +35,8 @@ TEST(SimulationTest, CompleteCall) {
 // tests each intermediate step
 
 TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
+  Postgres db(get_connection_url());
+
   std::unordered_map<int, Call> calls = {
     {1, {1, {0, 0}, CallPriority::Alpha, "", {0, 0}}}
   };
@@ -41,7 +48,7 @@ TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
   };
 
   Event e = {{0, 0}, EventType::CallReceived, 1, -1, -1};
-  auto next_event = handle_call_received(e, calls, ambulances, hospitals);
+  auto next_event = handle_call_received(e, calls, ambulances, hospitals, db);
 
   ASSERT_TRUE(next_event);
   EXPECT_EQ(next_event -> event_type, EventType::AmbulanceArriveAtScene);
@@ -51,6 +58,8 @@ TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
 }
 
 TEST(HandleEventTest, CallReceivedFailure) {
+  Postgres db(get_connection_url());
+
   std::unordered_map<int, Call> calls = {
     {1, {1, {0, 0}, CallPriority::Alpha, "", {0, 0}}}
   };
@@ -62,7 +71,7 @@ TEST(HandleEventTest, CallReceivedFailure) {
   };
 
   Event e = {{0, 0}, EventType::CallReceived, 1, -1, -1};
-  auto next_event = handle_call_received(e, calls, ambulances, hospitals);
+  auto next_event = handle_call_received(e, calls, ambulances, hospitals, db);
 
   EXPECT_FALSE(next_event);
 }

@@ -26,13 +26,24 @@ add_library(engine STATIC
   src/logic/simulation.cpp
   src/logic/handle_event.cpp
   src/util/generate.cpp
+  src/util/convert.cpp
   src/util/utility.cpp
   src/io/output.cpp
   src/io/logs.cpp
 )
 
+add_library(db STATIC
+  src/db/postgres.cpp
+  src/config/config.cpp
+)
+
 target_include_directories(engine PUBLIC src)
+target_include_directories(db PUBLIC src)
+
 target_link_libraries(engine PUBLIC pqxx)
+target_link_libraries(db PUBLIC pqxx)
+
+target_link_libraries(engine PUBLIC db)
 
 add_executable(main src/main.cpp)
 target_link_libraries(main PRIVATE engine)

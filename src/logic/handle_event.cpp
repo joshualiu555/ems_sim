@@ -3,18 +3,28 @@
 #include "../util/utility.hpp"
 #include "../io/logs.hpp"
 
+#include "../db/postgres.hpp"
+
 int find_time_elapsed(Location a, Location b) {
   int time = find_distance(a, b) / 10;
   add_time(time);
   return time;
 }
 
-std::optional<Event> handle_call_received(Event &e, std::unordered_map<int, Call> &calls, std::unordered_map<int, Ambulance> &ambulances, std::unordered_map<int, Hospital> &hospitals) {
+std::optional<Event> handle_call_received(
+  Event &e, 
+  std::unordered_map<int, Call> &calls, 
+  std::unordered_map<int, Ambulance> &ambulances, 
+  std::unordered_map<int, Hospital> &hospitals,
+  Postgres &db
+) {
   // calculate time to reach patient
   Call call = calls[e.call_id];
   std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals);
   log_call();
   if (!dispatch) return std::nullopt;
+  db.insert_dispatch(*dispatch);
+
   int time = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].location);
 
   Event next = {
@@ -53,7 +63,11 @@ std::optional<Event> handle_ambulance_arrive_at_scene(Event &e, std::unordered_m
   return next;
 }
 
-std::optional<Event> handle_transport_start(Event &e, std::unordered_map<int, Call> &calls, std::unordered_map<int, Hospital> &hospitals) {
+std::optional<Event> handle_transport_start(
+  Event &e, 
+  std::unordered_map<int, Call> &calls, 
+  std::unordered_map<int, Hospital> &hospitals
+) {
   // calclulate time to reach hospital
   Call call = calls[e.call_id];
   int time = find_time_elapsed(call.location, hospitals[e.hospital_id].location);
@@ -69,7 +83,12 @@ std::optional<Event> handle_transport_start(Event &e, std::unordered_map<int, Ca
   return next;
 }
 
-std::optional<Event> handle_ambulance_arrive_at_hospital(Event &e, std::unordered_map<int, Call> &calls, std::unordered_map<int, Ambulance> &ambulances, std::unordered_map<int, Hospital> &hospitals) {
+std::optional<Event> handle_ambulance_arrive_at_hospital(
+  Event &e, 
+  std::unordered_map<int, Call> &calls, 
+  std::unordered_map<int, Ambulance> &ambulances, 
+  std::unordered_map<int, Hospital> &hospitals
+) {
   log_successful_call();
 
   // calculate time to get back to station

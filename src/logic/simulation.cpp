@@ -15,8 +15,19 @@
 #include "../io/output.hpp"
 #include "../util/utility.hpp"
 
-Simulation::Simulation(std::unordered_map<int, Call> &calls, std::unordered_map<int, Ambulance> &ambulances, std::unordered_map<int, Hospital> &hospitals)
-  : calls(calls), ambulances(ambulances), hospitals(hospitals) 
+#include "../db/postgres.hpp"
+
+Simulation::Simulation(
+  std::unordered_map<int, Call> &calls, 
+  std::unordered_map<int, Ambulance> &ambulances, 
+  std::unordered_map<int, Hospital> &hospitals,
+  Postgres &db
+)
+  : 
+  calls(calls), 
+  ambulances(ambulances), 
+  hospitals(hospitals),
+  db(db)
 {}
 
 void Simulation::init() {
@@ -36,7 +47,7 @@ void Simulation::init() {
 std::optional<Event> Simulation::create_next_event(Event &e) {
   switch(e.event_type) {
     case EventType::CallReceived:
-      return handle_call_received(e, calls, ambulances, hospitals);
+      return handle_call_received(e, calls, ambulances, hospitals, db);
 
     case EventType::AmbulanceArriveAtScene:
       return handle_ambulance_arrive_at_scene(e, calls);
@@ -61,6 +72,7 @@ void Simulation::run() {
     Event e = pq.top();
     pq.pop();
     log_event(e);
+    db.insert_event(e);
     std::optional<Event> next_event = create_next_event(e);
     if (next_event) {
       pq.push(*next_event);
