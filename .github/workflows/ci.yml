@@ -35,10 +35,7 @@ jobs:
 
       - name: Build
         run: cmake --build build      
-
-      - name: Initialize database
-        run: PGPASSWORD=${{ secrets.DB_PASSWORD }} psql -h localhost -p 5432 -U ${{ secrets.DB_USER }} -d ems_sim_test_db -f db/migrations/001_init.sql
-
+        
       - name: Test
         env:
           POSTGRES_DB_CONNECTION_URL: postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@localhost:5432/ems_sim_test_db

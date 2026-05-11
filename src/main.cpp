@@ -42,6 +42,8 @@ int main() {
 
   Postgres db(get_connection_url());
 
+  db.run_migrations("db/migrations");
+
   db.execute("TRUNCATE TABLE events, dispatches, calls, ambulances, hospitals RESTART IDENTITY CASCADE;");
 
   for (const auto& [id, a] : ambulances) {

@@ -7,4 +7,3 @@
 ## Refactoring
 - Create test fixtures
 - Clean up CMakeLists.txt
-- Automatic DB creation

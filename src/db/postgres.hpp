@@ -15,7 +15,12 @@ class Postgres {
     Postgres(const std::string &conn_str);
 
     void execute(const std::string &sql);
+
+    template <typename... Args>
+    void execute_params(const std::string &sql, Args&&... args);
     pqxx::result query(const std::string &sql);
+
+    void run_migrations(const std::string &dir);
 
     void insert_hospital(const Hospital &h);
     void insert_ambulance(const Ambulance &a);
@@ -25,4 +30,6 @@ class Postgres {
 
   private:
     pqxx::connection conn;
+
+    bool check_if_migration_exists(const std::string &file);
 };

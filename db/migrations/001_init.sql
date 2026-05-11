@@ -1,6 +1,6 @@
 -- Entities
 
-CREATE TABLE hospitals (
+CREATE TABLE IF NOT EXISTS hospitals (
     id SERIAL PRIMARY KEY, 
     num_patients INTEGER DEFAULT 0,
     capacity INTEGER NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE hospitals (
     lon DOUBLE PRECISION NOT NULL
 );
 
-CREATE TABLE ambulances (
+CREATE TABLE IF NOT EXISTS ambulances (
     id SERIAL PRIMARY KEY,
     status TEXT NOT NULL, -- Available, Transporting
     type TEXT NOT NULL, -- BLS, ALS
@@ -16,7 +16,7 @@ CREATE TABLE ambulances (
     lon DOUBLE PRECISION NOT NULL
 );
 
-CREATE TABLE calls (
+CREATE TABLE IF NOT EXISTS calls (
     id SERIAL PRIMARY KEY,
     call_hour INTEGER NOT NULL,  
     call_minute INTEGER NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE calls (
 
 -- Relationships
 
-CREATE TABLE dispatches (
+CREATE TABLE IF NOT EXISTS dispatches (
     id SERIAL PRIMARY KEY, 
     call_id INTEGER NOT NULL REFERENCES calls(id),
     ambulance_id INTEGER NOT NULL REFERENCES ambulances(id),
@@ -37,7 +37,7 @@ CREATE TABLE dispatches (
 
 -- Logging
 
-CREATE UNLOGGED TABLE events (
+CREATE UNLOGGED TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
     event_hour INTEGER NOT NULL,
     event_minute INTEGER NOT NULL,

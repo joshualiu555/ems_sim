@@ -13,6 +13,7 @@
 // tests full sequence of events
 TEST(SimulationTest, CompleteCall) {
   Postgres db(get_connection_url());
+  db.run_migrations("../db/migrations");
   db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
 
   std::unordered_map<int, Call> calls = {
@@ -41,6 +42,7 @@ TEST(SimulationTest, CompleteCall) {
 
 TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
   Postgres db(get_connection_url());
+  db.run_migrations("../db/migrations");
   db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
 
   std::unordered_map<int, Call> calls = {
@@ -69,6 +71,7 @@ TEST(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
 
 TEST(HandleEventTest, CallReceivedFailure) {
   Postgres db(get_connection_url());
+  db.run_migrations("../db/migrations");
   db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
 
   std::unordered_map<int, Call> calls = {
