@@ -42,7 +42,7 @@ int main() {
 
   Postgres db(get_connection_url());
 
-  db.run_migrations("db/migrations");
+  db.run_migrations(MIGRATION_PATH);
 
   db.execute("TRUNCATE TABLE events, dispatches, calls, ambulances, hospitals RESTART IDENTITY CASCADE;");
 
