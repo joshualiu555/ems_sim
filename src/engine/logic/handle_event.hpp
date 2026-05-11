@@ -3,12 +3,12 @@
 #include <optional>
 #include <unordered_map>
 
-#include "../models/call.hpp"
-#include "../models/event.hpp"
-#include "../models/ambulance.hpp"
-#include "../models/hospital.hpp"
+#include "models/call.hpp"
+#include "models/event.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
 
-#include "../db/postgres.hpp"
+#include "db/postgres.hpp"
 
 std::optional<Event> handle_call_received(
   Event &e, 

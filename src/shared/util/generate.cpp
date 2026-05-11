@@ -4,13 +4,13 @@
 #include <utility>
 #include <string>
 
-#include "../models/ambulance.hpp"
-#include "../models/hospital.hpp"
-#include "../models/call.hpp"
-#include "../models/helper.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
+#include "models/call.hpp"
+#include "models/helper.hpp"
 
 #include "generate.hpp"
-#include "utility.hpp"
+#include "calc.hpp"
 
 int ambulance_id = 0;
 int hospital_id = 0;

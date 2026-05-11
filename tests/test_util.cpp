@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "../src/models/helper.hpp"
-#include "../src/util/utility.hpp"
+#include "models/helper.hpp"
+#include "util/calc.hpp"
 
 TEST(TimeTest, AddMinutesWithWrap) {
   Time t = {10, 50};

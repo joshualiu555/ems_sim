@@ -5,7 +5,7 @@
 #include "models/hospital.hpp"
 #include "models/helper.hpp"
 
-#include "../src/logic/dispatch.hpp"
+#include "logic/dispatch.hpp"
 
 class DispatchTest : public ::testing::Test {
 protected:

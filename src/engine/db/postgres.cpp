@@ -6,7 +6,7 @@
 
 #include "postgres.hpp"
 
-#include "../util/convert.hpp" 
+#include "util/convert.hpp" 
 
 Postgres::Postgres(const std::string& conn_str) : conn(conn_str) {}
 

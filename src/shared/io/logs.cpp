@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../models/event.hpp"
+#include "models/event.hpp"
 
 #include "logs.hpp"
 #include "output.hpp"

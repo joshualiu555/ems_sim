@@ -3,19 +3,19 @@
 #include <unordered_map>
 #include <iostream>
 
-#include "../models/call.hpp"
-#include "../models/event.hpp"
-#include "../models/ambulance.hpp"
-#include "../models/hospital.hpp"
+#include "models/call.hpp"
+#include "models/event.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
 
 #include "handle_event.hpp"
 #include "dispatch.hpp"
 #include "simulation.hpp"
-#include "../io/logs.hpp"
-#include "../io/output.hpp"
-#include "../util/utility.hpp"
+#include "io/logs.hpp"
+#include "io/output.hpp"
+#include "util/calc.hpp"
 
-#include "../db/postgres.hpp"
+#include "db/postgres.hpp"
 
 Simulation::Simulation(
   std::unordered_map<int, Call> &calls, 

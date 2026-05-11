@@ -4,12 +4,12 @@
 #include <unordered_map>
 #include <optional>
 
-#include "../models/call.hpp"
-#include "../models/ambulance.hpp"
-#include "../models/hospital.hpp"
-#include "../models/event.hpp"
+#include "models/call.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
+#include "models/event.hpp"
 
-#include "../db/postgres.hpp"
+#include "db/postgres.hpp"
 
 class Simulation {
 public:

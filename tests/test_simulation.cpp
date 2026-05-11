@@ -3,14 +3,15 @@
 
 #include <gtest/gtest.h>
 
-#include "../src/logic/simulation.hpp"
-#include "../src/logic/handle_event.hpp"
-#include "../src/models/call.hpp"
-#include "../src/models/ambulance.hpp"
-#include "../src/models/hospital.hpp"
+#include "logic/simulation.hpp"
+#include "logic/handle_event.hpp"
 
-#include "../src/config/config.hpp"
-#include "../src/db/postgres.hpp"
+#include "models/call.hpp"
+#include "models/ambulance.hpp"
+#include "models/hospital.hpp"
+
+#include "config/config.hpp"
+#include "db/postgres.hpp"
 
 class HandleEventTest:public::testing::Test {
 protected:

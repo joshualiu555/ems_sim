@@ -4,11 +4,11 @@
 
 #include <pqxx/pqxx>
 
-#include "../models/hospital.hpp"
-#include "../models/ambulance.hpp"
-#include "../models/call.hpp"
-#include "../models/dispatch.hpp"
-#include "../models/event.hpp"
+#include "models/hospital.hpp"
+#include "models/ambulance.hpp"
+#include "models/call.hpp"
+#include "models/dispatch.hpp"
+#include "models/event.hpp"
 
 class Postgres {
   public:

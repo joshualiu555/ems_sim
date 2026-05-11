@@ -1,6 +1,6 @@
-#include "../models/ambulance.hpp"
-#include "../models/call.hpp"
-#include "../models/event.hpp"
+#include "models/ambulance.hpp"
+#include "models/call.hpp"
+#include "models/event.hpp"
 
 std::string to_string(const AmbulanceStatus &as) {
     return as == AmbulanceStatus::Available ? "Available" : "Transporting";

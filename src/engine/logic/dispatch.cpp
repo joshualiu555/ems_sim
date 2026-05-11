@@ -3,13 +3,13 @@
 #include <unordered_map>
 #include <climits>
 
-#include "../models/ambulance.hpp"
-#include "../models/dispatch.hpp"
-#include "../models/hospital.hpp"
-#include "../models/call.hpp"
+#include "models/ambulance.hpp"
+#include "models/dispatch.hpp"
+#include "models/hospital.hpp"
+#include "models/call.hpp"
 
 #include "dispatch.hpp"
-#include "../util/utility.hpp"
+#include "util/calc.hpp"
 
 std::optional<Dispatch> create_dispatch(
   Call &c, 

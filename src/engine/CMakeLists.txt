@@ -1,0 +1,15 @@
+add_library(engine STATIC
+    config/config.cpp
+    db/postgres.cpp
+    logic/dispatch.cpp
+    logic/handle_event.cpp
+    logic/simulation.cpp
+)
+
+target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(engine PUBLIC shared pqxx)
+
+target_compile_definitions(engine PUBLIC 
+  MIGRATION_PATH="${CMAKE_SOURCE_DIR}/db/migrations"
+)

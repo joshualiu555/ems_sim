@@ -1,9 +1,9 @@
 #include "handle_event.hpp"
 #include "dispatch.hpp"
-#include "../util/utility.hpp"
-#include "../io/logs.hpp"
+#include "util/calc.hpp"
+#include "io/logs.hpp"
 
-#include "../db/postgres.hpp"
+#include "db/postgres.hpp"
 
 int find_time_elapsed(Location a, Location b) {
   int time = find_distance(a, b) / 10;
