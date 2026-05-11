@@ -1,6 +1,7 @@
-#include <gtest/gtest.h>
 #include <unordered_map>
 #include <memory>
+
+#include <gtest/gtest.h>
 
 #include "../src/logic/simulation.hpp"
 #include "../src/logic/handle_event.hpp"
@@ -11,7 +12,7 @@
 #include "../src/config/config.hpp"
 #include "../src/db/postgres.hpp"
 
-class HandleEventTest : public ::testing::Test {
+class HandleEventTest:public::testing::Test {
 protected:
   std::unique_ptr<Postgres> db;
   std::unordered_map<int, Call> calls;
@@ -28,26 +29,33 @@ protected:
     db -> execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
   }
 
-  void SeedDatabase(AmbulanceStatus amb_status) {
+  void init_db(AmbulanceStatus ambulance_status) {
     db -> execute("INSERT INTO calls (id, call_hour, call_minute, priority, description, lat, lon) VALUES (1, 0, 0, 'Alpha', 'Test Call', 0.0, 0.0);");
     db -> execute("INSERT INTO hospitals (id, capacity, lat, lon) VALUES (1, 10, 0.0, 0.0);");
     
-    std::string status_str = (amb_status == AmbulanceStatus::Available) ? "Available" : "Transporting";
-    db -> execute("INSERT INTO ambulances (id, status, type, lat, lon) VALUES (1, '" + status_str + "', 'BLS', 0.0, 0.0);");
+    std::string status = (ambulance_status == AmbulanceStatus::Available) ? "Available" : "Transporting";
+    db -> execute_params(
+      "INSERT INTO ambulances (id, status, type, lat, lon) VALUES ($1, $2, $3, $4, $5);",
+      1,
+      status,
+      "BLS",
+      0.0,
+      0.0
+    );
   }
 };
 
 TEST_F(HandleEventTest, CompleteCall) {
-  SeedDatabase(AmbulanceStatus::Available);
+  init_db(AmbulanceStatus::Available);
 
-  Simulation sim(calls, ambulances, hospitals, *db);
-  sim.run();
+  Simulation simulation(calls, ambulances, hospitals, *db);
+  simulation.run();
 
   EXPECT_EQ(ambulances[1].ambulance_status, AmbulanceStatus::Available);
 }
 
 TEST_F(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
-  SeedDatabase(AmbulanceStatus::Available);
+  init_db(AmbulanceStatus::Available);
 
   Event e = {{0, 0}, EventType::CallReceived, 1, -1, -1};
   auto next_event = handle_call_received(e, calls, ambulances, hospitals, *db);
@@ -61,7 +69,7 @@ TEST_F(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
 
 TEST_F(HandleEventTest, CallReceivedFailure) {
   ambulances[1].ambulance_status = AmbulanceStatus::Transporting;
-  SeedDatabase(AmbulanceStatus::Transporting);
+  init_db(AmbulanceStatus::Transporting);
 
   Event e = {{0, 0}, EventType::CallReceived, 1, -1, -1};
   auto next_event = handle_call_received(e, calls, ambulances, hospitals, *db);

@@ -16,13 +16,6 @@ void Postgres::execute(const std::string &sql) {
   txn.commit();
 }
 
-template <typename... Args>
-void Postgres::execute_params(const std::string &sql, Args&&... args) {
-    pqxx::work txn(conn);
-    txn.exec(sql, pqxx::params{std::forward<Args>(args)...});
-    txn.commit();
-}
-
 pqxx::result Postgres::query(const std::string &sql) {
   pqxx::work txn(conn);
   auto result = txn.exec(sql);

@@ -17,7 +17,11 @@ class Postgres {
     void execute(const std::string &sql);
 
     template <typename... Args>
-    void execute_params(const std::string &sql, Args&&... args);
+    void execute_params(const std::string &sql, Args&&... args) {
+      pqxx::work txn(conn);
+      txn.exec(sql, pqxx::params{std::forward<Args>(args)...});
+      txn.commit();
+    }
     pqxx::result query(const std::string &sql);
 
     void run_migrations(const std::string &dir);
