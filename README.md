@@ -5,4 +5,3 @@
 - Allow ambulance to take another call from anywhere - keep track of live locations
 
 ## Refactoring
-- Create test fixtures
