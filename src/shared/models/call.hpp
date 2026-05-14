@@ -18,4 +18,9 @@ struct Call {
   CallPriority priority;
   std::string description;
   Location location;
+
+  bool operator<(const Call &c) const {
+    if (time.hour == c.time.hour) return time.minute < c.time.minute;
+    return time.hour < c.time.hour;
+  }
 };

@@ -21,8 +21,14 @@ FetchContent_Declare(
 FetchContent_Declare(
   asio 
   GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git 
-  GIT_TAG asio-1-21-0
+  GIT_TAG asio-1-38-0
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
 FetchContent_MakeAvailable(googletest libpqxx json asio)
+
+add_library(asio_standalone INTERFACE)
+
+target_include_directories(asio_standalone INTERFACE ${asio_SOURCE_DIR}/asio/include)
+
+target_compile_definitions(asio_standalone INTERFACE ASIO_STANDALONE)
