@@ -44,7 +44,7 @@ int main() {
   Simulation simulation(ambulances, hospitals, db);
 
   asio::io_context io_context;
-  Server server(io_context, 8080, ambulances, hospitals, db, simulation);    
+  Server server(io_context, 8080, simulation);    
 
   asio::steady_timer sim_timer(io_context, asio::chrono::seconds(0));
   std::function<void(const asio::error_code&)> tick_simulation;

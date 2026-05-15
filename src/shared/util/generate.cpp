@@ -16,7 +16,7 @@ int ambulance_id = 0;
 int hospital_id = 0;
 int call_id = 0;
 
-int generate_id(std::string s) {
+int generate_id(const std::string s) {
   if (s == "ambulance") {
     return ambulance_id++;
   } else if (s == "hospital") {
@@ -26,7 +26,7 @@ int generate_id(std::string s) {
   }
 }
 
-Ambulance generate_ambulance(Bounds &b, std::mt19937 &gen) {
+Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen) {
   int id = generate_id("ambulance");
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
@@ -49,7 +49,7 @@ Ambulance generate_ambulance(Bounds &b, std::mt19937 &gen) {
   return a;
 }
 
-Hospital generate_hospital(Bounds &b, std::mt19937 &gen) {
+Hospital generate_hospital(const Bounds &b, std::mt19937 &gen) {
   int id = generate_id("hospital");
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
@@ -71,7 +71,7 @@ Hospital generate_hospital(Bounds &b, std::mt19937 &gen) {
   return h;
 }
 
-Call generate_call(Bounds &b, std::mt19937 &gen) {
+Call generate_call(const Bounds &b, std::mt19937 &gen) {
   int id = generate_id("call");
   std::uniform_int_distribution<int> priority(1, 5);
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);

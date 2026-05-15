@@ -17,7 +17,7 @@ class Simulation {
 
     Simulation(
       std::unordered_map<int, Ambulance> &ambulances, 
-      std::unordered_map<int, Hospital> &hospitals,
+      const std::unordered_map<int, Hospital> &hospitals,
       Postgres &db
     );
 
@@ -27,12 +27,12 @@ class Simulation {
   private:
     std::unordered_map<int, Call> calls;
     std::unordered_map<int, Ambulance> &ambulances;
-    std::unordered_map<int, Hospital> &hospitals;
+    const std::unordered_map<int, Hospital> &hospitals;
 
     Postgres &db;
 
     std::priority_queue<Event> pq;
 
-    std::optional<Event> create_next_event(Event &e);
+    std::optional<Event> create_next_event(const Event &e);
 };
  

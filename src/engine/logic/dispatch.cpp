@@ -12,9 +12,9 @@
 #include "util/calc.hpp"
 
 std::optional<Dispatch> create_dispatch(
-  Call &c, 
-  std::unordered_map<int, Ambulance> &all_ambulances, 
-  std::unordered_map<int, Hospital> &all_hospitals
+  const Call &c, 
+  const std::unordered_map<int, Ambulance> &all_ambulances, 
+  const std::unordered_map<int, Hospital> &all_hospitals
 ) {
     auto available_ambulances = find_available_ambulances(c, all_ambulances);
     if (available_ambulances.empty()) {
@@ -37,7 +37,7 @@ std::optional<Dispatch> create_dispatch(
     };
 }
 
-std::vector<Ambulance> find_available_ambulances(Call &c, std::unordered_map<int, Ambulance> &all_ambulances) {
+std::vector<Ambulance> find_available_ambulances(const Call &c, const std::unordered_map<int, Ambulance> &all_ambulances) {
   std::vector<Ambulance> available_ambulances; 
   for (const auto& [id, a] : all_ambulances) {
       if (a.ambulance_status == AmbulanceStatus::Available) {
@@ -52,7 +52,7 @@ std::vector<Ambulance> find_available_ambulances(Call &c, std::unordered_map<int
   return available_ambulances;
 }
 
-std::vector<Hospital> find_available_hospitals(std::unordered_map<int, Hospital> &all_hospitals) {
+std::vector<Hospital> find_available_hospitals(const std::unordered_map<int, Hospital> &all_hospitals) {
   std::vector<Hospital> available_hospitals; 
   for (const auto& [id, h] : all_hospitals) {
     if (h.num_patients < h.capacity) {
@@ -62,7 +62,7 @@ std::vector<Hospital> find_available_hospitals(std::unordered_map<int, Hospital>
   return available_hospitals;
 }
 
-Ambulance find_closest_ambulance(Call &c, std::vector<Ambulance> &available_ambulances) {
+Ambulance find_closest_ambulance(const Call &c, const std::vector<Ambulance> &available_ambulances) {
   Ambulance closest_ambulance = available_ambulances[0];
   int min_distance = INT_MAX;
   for (Ambulance a : available_ambulances) {
@@ -75,7 +75,7 @@ Ambulance find_closest_ambulance(Call &c, std::vector<Ambulance> &available_ambu
   return closest_ambulance;
 }
 
-Hospital find_closest_hospital(Call &c, std::vector<Hospital> &available_hospitals) {
+Hospital find_closest_hospital(const Call &c, const std::vector<Hospital> &available_hospitals) {
   Hospital closest_hospital = available_hospitals[0];
   int min_distance = INT_MAX;
   for (Hospital h : available_hospitals) {

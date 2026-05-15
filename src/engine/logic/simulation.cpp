@@ -11,7 +11,6 @@
 #include "handle_event.hpp"
 #include "dispatch.hpp"
 #include "simulation.hpp"
-#include "io/logs.hpp"
 #include "io/output.hpp"
 #include "util/calc.hpp"
 
@@ -19,7 +18,7 @@
 
 Simulation::Simulation(
   std::unordered_map<int, Ambulance> &ambulances, 
-  std::unordered_map<int, Hospital> &hospitals,
+  const std::unordered_map<int, Hospital> &hospitals,
   Postgres &db
 )
   : 
@@ -44,7 +43,7 @@ void Simulation::add_call(Call &c) {
   pq.push(e);
 }
 
-std::optional<Event> Simulation::create_next_event(Event &e) {
+std::optional<Event> Simulation::create_next_event(const Event &e) {
   switch(e.event_type) {
     case EventType::CallReceived:
       return handle_call_received(e, calls, ambulances, hospitals, db);

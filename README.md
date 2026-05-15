@@ -7,7 +7,5 @@
 
 ## Refactoring
 - Update ambulance, hospital, call statuses in database for each event
-- Delete unnecessary files
-- Add const
 - Add tests for database
 - Add tests for network

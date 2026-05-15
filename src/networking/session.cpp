@@ -37,7 +37,7 @@ void Session::read() {
   auto self(shared_from_this());
 
   asio::async_read_until(socket_, read_buffer, '\n',
-    [this, self](std::error_code ec, std::size_t length) {
+    [this, self](std::error_code ec, std::size_t) {
       if (!ec) {
         std::istream is(&read_buffer);
         std::string line;
@@ -69,7 +69,7 @@ void Session::write(std::string message) {
   write_message = std::move(message);
 
   asio::async_write(socket_, asio::buffer(write_message),
-    [this, self](std::error_code ec, std::size_t length) {
+    [this, self](std::error_code ec, std::size_t) {
       if (!ec) { 
         read();
       } 

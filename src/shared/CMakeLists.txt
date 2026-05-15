@@ -1,5 +1,4 @@
 add_library(shared STATIC
-  io/logs.cpp
   io/output.cpp
   util/calc.cpp
   util/convert.cpp

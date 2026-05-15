@@ -26,7 +26,7 @@ class Session:public std::enable_shared_from_this<Session> {
     void start();
 
   private:
-      explicit Session(
+      Session(
         asio::io_context &io_context,
         Simulation &simulation
       );

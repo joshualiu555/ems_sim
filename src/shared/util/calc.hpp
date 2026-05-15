@@ -2,4 +2,4 @@
 
 #include "models/helper.hpp"
 
-double find_distance(Location a, Location b);
+double find_distance(const Location a, const Location b);
