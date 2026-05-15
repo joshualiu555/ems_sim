@@ -31,16 +31,20 @@ class HandleEventTest:public::testing::Test {
       db -> execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
     }
 
-    void init_db(AmbulanceStatus ambulance_status) {
-      db -> execute("INSERT INTO calls (id, call_time, priority, description, lat, lon) VALUES (1, 0, 'Alpha', 'Test Call', 0.0, 0.0);");
+    void init_db(AmbulanceStatus ambulance_status, bool insert_call = true) {
+      if (insert_call) {
+        db -> execute("INSERT INTO calls (id, call_time, priority, description, lat, lon) VALUES (1, 0, 'Alpha', 'Test Call', 0.0, 0.0);");
+      }
       db -> execute("INSERT INTO hospitals (id, capacity, lat, lon) VALUES (1, 10, 0.0, 0.0);");
       
       std::string status = (ambulance_status == AmbulanceStatus::Available) ? "Available" : "Transporting";
       db -> execute_params(
-        "INSERT INTO ambulances (id, status, type, lat, lon) VALUES ($1, $2, $3, $4, $5);",
+        "INSERT INTO ambulances (id, status, type, station_lat, station_lon, current_lat, current_lon) VALUES ($1, $2, $3, $4, $5, $6, $7);",
         1,
         status,
         "BLS",
+        0.0,
+        0.0,
         0.0,
         0.0
       );
@@ -48,7 +52,7 @@ class HandleEventTest:public::testing::Test {
 };
 
 TEST_F(HandleEventTest, CompleteCall) {
-  init_db(AmbulanceStatus::Available);
+  init_db(AmbulanceStatus::Available, false);
 
   Simulation simulation(ambulances, hospitals, *db);
   simulation.add_call(calls[1]);
