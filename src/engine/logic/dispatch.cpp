@@ -66,7 +66,7 @@ Ambulance find_closest_ambulance(const Call &c, const std::vector<Ambulance> &av
   Ambulance closest_ambulance = available_ambulances[0];
   int min_distance = INT_MAX;
   for (Ambulance a : available_ambulances) {
-    int d = find_distance(a.location, c.location);
+    int d = find_distance(a.current_location, c.location);
     if (d < min_distance) {
       closest_ambulance = a;
       min_distance = d;

@@ -6,6 +6,5 @@
 - Don't automatically fail a call if there is no available ambulance - Give them time and only fail if a certain amount of time has elapsed (death) depending on the call priority
 
 ## Refactoring
-- Update ambulance, hospital, call statuses in database for each event
 - Add tests for database
 - Add tests for network

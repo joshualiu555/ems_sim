@@ -8,22 +8,22 @@
 #include "logic/dispatch.hpp"
 
 class DispatchTest:public::testing::Test {
-protected:
-  Call call;
-  std::unordered_map<int, Ambulance> ambulances;
-  std::unordered_map<int, Hospital> hospitals;
+  protected:
+    Call call;
+    std::unordered_map<int, Ambulance> ambulances;
+    std::unordered_map<int, Hospital> hospitals;
 
-  void SetUp() override {
-    call = {1, 0, CallPriority::Alpha, "", {0, 0}};
+    void SetUp() override {
+      call = {1, 0, CallPriority::Alpha, "", {0, 0}};
 
-    ambulances = {
-      {1, {1, AmbulanceStatus::Available, AmbulanceType::BLS, {0, 0}}}
-    };
+      ambulances = {
+        {1, {1, AmbulanceStatus::Available, AmbulanceType::BLS, {0, 0}}}
+      };
 
-    hospitals = {
-      {1, {1, 0, 10, {0, 0}}}
-    };
-  }
+      hospitals = {
+        {1, {1, 0, 10, {0, 0}}}
+      };
+    }
 };
 
 TEST_F(DispatchTest, NoAmbulanceAvailable) {

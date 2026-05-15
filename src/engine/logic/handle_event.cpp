@@ -1,28 +1,28 @@
 #include "handle_event.hpp"
 #include "dispatch.hpp"
 #include "util/calc.hpp"
-
 #include "db/postgres.hpp"
 
 int find_time_elapsed(Location a, Location b) {
-  int time = find_distance(a, b) / 10;
+  int time = find_distance(a, b) / 5;
   return time;
 }
 
-std::optional<Event> handle_call_received(
+std::vector<Event> handle_call_received(
   const Event &e, 
   const std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   const std::unordered_map<int, Hospital> &hospitals,
   Postgres &db
-) {
-  // calculate time to reach patient
+) 
+{
   Call call = calls.at(e.call_id);
   std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals);
-  if (!dispatch) return std::nullopt;
+  if (!dispatch) return {};
+  
   db.insert_dispatch(*dispatch);
 
-  int time_elapsed = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].location);
+  int time_elapsed = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].current_location);
 
   Event next = {
     e.time + time_elapsed,
@@ -32,21 +32,21 @@ std::optional<Event> handle_call_received(
     dispatch -> hospital_id
   };
 
-  // ambulance is now unavailable
   ambulances[dispatch -> ambulance_id].ambulance_status = AmbulanceStatus::Transporting;
-
-  return next;
+  db.update_ambulance_status("Transporting", dispatch -> ambulance_id);
+  
+  return {next}; 
 }
 
-std::optional<Event> handle_ambulance_arrive_at_scene(const Event &e, const std::unordered_map<int, Call> &calls) {
-  // calculate time to stay on scene
+std::vector<Event> handle_ambulance_arrive_at_scene(
+  const Event &e, 
+  const std::unordered_map<int, Call> &calls,
+  std::unordered_map<int, Ambulance> &ambulances, 
+  Postgres &db
+) 
+{
   Call call = calls.at(e.call_id);
-  int time_elapsed;
-  if (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) {
-    time_elapsed = 5;
-  } else {
-    time_elapsed = 10;
-  }
+  int time_elapsed = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 5 : 10;
 
   Event next = {
     e.time + time_elapsed,
@@ -56,15 +56,20 @@ std::optional<Event> handle_ambulance_arrive_at_scene(const Event &e, const std:
     e.hospital_id
   };
 
-  return next;
+  ambulances[e.ambulance_id].current_location = calls.at(e.call_id).location;
+  db.update_ambulance_location(calls.at(e.call_id).location.lat, calls.at(e.call_id).location.lon, e.ambulance_id);
+
+  return {next};
 }
 
-std::optional<Event> handle_transport_start(
+std::vector<Event> handle_transport_start(
   const Event &e, 
   const std::unordered_map<int, Call> &calls, 
-  const std::unordered_map<int, Hospital> &hospitals
-) {
-  // calclulate time to reach hospital
+  std::unordered_map<int, Ambulance> &ambulances, 
+  const std::unordered_map<int, Hospital> &hospitals,
+  Postgres &db
+) 
+{
   Call call = calls.at(e.call_id);
   int time_elapsed = find_time_elapsed(call.location, hospitals.at(e.hospital_id).location);
 
@@ -76,35 +81,74 @@ std::optional<Event> handle_transport_start(
     e.hospital_id
   };
 
-  return next;
+  return {next};
 }
 
-std::optional<Event> handle_ambulance_arrive_at_hospital(
+std::vector<Event> handle_ambulance_arrive_at_hospital(
   const Event &e, 
   const std::unordered_map<int, Call> &calls, 
-  const std::unordered_map<int, Ambulance> &ambulances, 
-  const std::unordered_map<int, Hospital> &hospitals
-) {
-
-  // calculate time to get back to station
+  std::unordered_map<int, Ambulance> &ambulances, 
+  std::unordered_map<int, Hospital> &hospitals,
+  Postgres &db
+) 
+{
   Call call = calls.at(e.call_id);
-  int distance = find_distance(hospitals.at(e.hospital_id).location, ambulances.at(e.ambulance_id).location);
-  int time_elapsed = distance / 10;
+  
+  // return to station
+  int distance = find_distance(hospitals.at(e.hospital_id).location, ambulances.at(e.ambulance_id).station_location);
+  int time_to_station = distance / 10;
 
-  Event next = {
-    e.time + time_elapsed,
+  Event back_at_station = {
+    e.time + time_to_station,
     EventType::AmbulanceBackAtStation,
     e.call_id,
     e.ambulance_id,
     e.hospital_id
   };
 
-  return next;
+  // patient stays at hospital
+  int discharge_time = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 10 : 20;
+  
+  Event discharge_event = {
+    e.time + discharge_time,
+    EventType::PatientDischarged,
+    e.call_id,
+    -1, // no ambulance needed anymore
+    e.hospital_id
+  };
+
+  ambulances.at(e.ambulance_id).current_location = hospitals.at(e.hospital_id).location;
+  db.update_ambulance_location(hospitals.at(e.hospital_id).location.lat, hospitals.at(e.hospital_id).location.lon, e.ambulance_id);
+  
+  hospitals[e.hospital_id].num_patients++;
+  db.update_hospital(hospitals[e.hospital_id].num_patients, e.hospital_id);
+
+  return {back_at_station, discharge_event};
 }
 
-std::optional<Event> handle_ambulance_back_at_station(const Event &e, std::unordered_map<int, Ambulance> &ambulances) {
-  // ambulance is available again
+std::vector<Event> handle_ambulance_back_at_station(
+  const Event &e, 
+  std::unordered_map<int, Ambulance> &ambulances,
+  Postgres &db
+) 
+{
+  ambulances[e.ambulance_id].current_location = ambulances[e.ambulance_id].station_location;
   ambulances[e.ambulance_id].ambulance_status = AmbulanceStatus::Available;
+  
+  db.update_ambulance_status("Available", e.ambulance_id);
 
-  return std::nullopt;
+  return {};
+}
+
+std::vector<Event> handle_patient_discharged(
+  const Event &e, 
+  std::unordered_map<int, Hospital> &hospitals,
+  Postgres &db
+) 
+{
+  // free up a hospital bed
+  hospitals[e.hospital_id].num_patients--;
+  db.update_hospital(hospitals[e.hospital_id].num_patients, e.hospital_id);
+
+  return {}; 
 }

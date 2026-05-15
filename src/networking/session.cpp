@@ -55,7 +55,6 @@ void Session::read() {
         simulation.add_call(c);
 
         json response;
-        response["status"] = "success";
         response["call_id"] = c.id;
 
         write(response.dump() + "\n");

@@ -12,8 +12,10 @@ CREATE TABLE IF NOT EXISTS ambulances (
     id SERIAL PRIMARY KEY,
     status TEXT NOT NULL, -- Available, Transporting
     type TEXT NOT NULL, -- BLS, ALS
-    lat DOUBLE PRECISION NOT NULL,
-    lon DOUBLE PRECISION NOT NULL
+    station_lat DOUBLE PRECISION NOT NULL,
+    station_lon DOUBLE PRECISION NOT NULL,
+    current_lat DOUBLE PRECISION NOT NULL,
+    current_lon DOUBLE PRECISION NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS calls (

@@ -16,5 +16,6 @@ struct Ambulance {
   int id;
   AmbulanceStatus ambulance_status;
   AmbulanceType ambulance_type;
-  Location location;
+  Location station_location;
+  Location current_location;
 };

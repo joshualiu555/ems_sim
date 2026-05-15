@@ -1,34 +1,25 @@
-#include <queue>
-#include <vector>
-#include <unordered_map>
 #include <iostream>
-
-#include "models/call.hpp"
-#include "models/event.hpp"
-#include "models/ambulance.hpp"
-#include "models/hospital.hpp"
-
-#include "handle_event.hpp"
-#include "dispatch.hpp"
-#include "simulation.hpp"
-#include "io/output.hpp"
-#include "util/calc.hpp"
 
 #include "db/postgres.hpp"
 
+#include "simulation.hpp"
+#include "dispatch.hpp"
+#include "handle_event.hpp"
+#include "io/output.hpp"
+
+#include "util/calc.hpp"
+
 Simulation::Simulation(
   std::unordered_map<int, Ambulance> &ambulances, 
-  const std::unordered_map<int, Hospital> &hospitals,
+  std::unordered_map<int, Hospital> &hospitals,
   Postgres &db
-)
-  : 
-  ambulances(ambulances), 
-  hospitals(hospitals),
-  db(db)
+) : ambulances(ambulances), hospitals(hospitals), db(db) 
 {}
 
 void Simulation::add_call(Call &c) {
   calls[c.id] = c; 
+  
+  db.insert_call(c); 
 
   Event e = {
     c.time,
@@ -38,25 +29,25 @@ void Simulation::add_call(Call &c) {
     -1
   };
 
-  db.insert_call(c);
-
   pq.push(e);
 }
 
-std::optional<Event> Simulation::create_next_event(const Event &e) {
+std::vector<Event> Simulation::create_next_event(const Event &e) {
   switch(e.event_type) {
     case EventType::CallReceived:
       return handle_call_received(e, calls, ambulances, hospitals, db);
     case EventType::AmbulanceArriveAtScene:
-      return handle_ambulance_arrive_at_scene(e, calls);
+      return handle_ambulance_arrive_at_scene(e, calls, ambulances, db);
     case EventType::TransportStart:
-      return handle_transport_start(e, calls, hospitals);
+      return handle_transport_start(e, calls, ambulances, hospitals, db);
     case EventType::AmbulanceArriveAtHospital:
-      return handle_ambulance_arrive_at_hospital(e, calls, ambulances, hospitals);
+      return handle_ambulance_arrive_at_hospital(e, calls, ambulances, hospitals, db);
     case EventType::AmbulanceBackAtStation:
-      return handle_ambulance_back_at_station(e, ambulances);
+      return handle_ambulance_back_at_station(e, ambulances, db);
+    case EventType::PatientDischarged:
+      return handle_patient_discharged(e, hospitals, db);
     default:
-        return std::nullopt;
+      return {}; 
   }
 }
 
@@ -68,9 +59,10 @@ void Simulation::run(int current_time) {
     std::cout << e << '\n';
     db.insert_event(e);
     
-    std::optional<Event> next_event = create_next_event(e);
-    if (next_event) {
-      pq.push(*next_event);
+    std::vector<Event> next_events = create_next_event(e);
+    
+    for (const Event& next : next_events) {
+      pq.push(next);
     } 
   }
 }

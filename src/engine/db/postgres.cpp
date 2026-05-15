@@ -78,12 +78,14 @@ void Postgres::insert_hospital(const Hospital &h) {
 
 void Postgres::insert_ambulance(const Ambulance &a) {
   execute_params(
-    "INSERT INTO ambulances (id, status, type, lat, lon) VALUES ($1, $2, $3, $4, $5)",
+    "INSERT INTO ambulances (id, status, type, station_lat, station_lon, current_lat, current_lon) VALUES ($1, $2, $3, $4, $5, $6, $7)",
     a.id,
     to_string(a.ambulance_status),
     to_string(a.ambulance_type),
-    a.location.lat,
-    a.location.lon
+    a.station_location.lat,
+    a.station_location.lon,
+    a.station_location.lat,
+    a.station_location.lon
   );
 }
 
@@ -120,5 +122,42 @@ void Postgres::insert_event(const Event &e) {
     c_id,
     a_id,
     h_id
+  );
+}
+
+void Postgres::update_hospital(int num_patients, int id) {
+  execute_params(
+    R"(
+      UPDATE hospitals
+      SET num_patients = $1
+      WHERE id = $2
+    )",
+    num_patients,
+    id
+  );
+}
+
+void Postgres::update_ambulance_status(std::string status, int id) {
+  execute_params(
+    R"(
+      UPDATE ambulances
+      SET status = $1
+      WHERE id = $2
+    )",
+    status,
+    id
+  );
+}
+
+void Postgres::update_ambulance_location(int lat, int lon, int id) {
+  execute_params(
+    R"(
+      UPDATE ambulances
+      SET current_lat = $1, current_lon = $2
+      WHERE id = $3
+    )",
+    lat,
+    lon,
+    id
   );
 }

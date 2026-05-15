@@ -32,6 +32,10 @@ class Postgres {
     void insert_dispatch(const Dispatch &d);
     void insert_event(const Event &e);
 
+    void update_hospital(int num_patients, int id);
+    void update_ambulance_status(std::string status, int id);
+    void update_ambulance_location(int lat, int lon, int id);
+
   private:
     pqxx::connection conn;
 

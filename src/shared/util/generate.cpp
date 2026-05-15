@@ -43,6 +43,7 @@ Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen) {
     id,
     as,
     at,
+    l,
     l
   };
 

@@ -55,6 +55,8 @@ std::ostream &operator<<(std::ostream &os, const Event &e) {
       return os << "Ambulance " << e.ambulance_id << " arrived at hospital " << e.hospital_id << " at time " << e.time;
     case EventType::AmbulanceBackAtStation:
       return os << "Ambulance " << e.ambulance_id << " arrived back at station " << e.hospital_id << " at time " << e.time;
+    case EventType::PatientDischarged:
+      return os << "Patient discharged from hospital " << e.hospital_id << " at time " << e.time;
     default:
       return os << "Unknown"; 
   }
