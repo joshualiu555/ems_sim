@@ -11,7 +11,7 @@ enum class EventType {
 };
 
 struct Event {
-  Time time;
+  int time;
   EventType event_type;
 
   int call_id = -1;
@@ -19,7 +19,6 @@ struct Event {
   int hospital_id = -1;
 
   bool operator<(const Event& e) const {
-    if (time.hour == e.time.hour) return time.minute > e.time.minute;
-    return time.hour > e.time.hour;
+    return e.time < time;
   }
 };

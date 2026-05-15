@@ -9,23 +9,27 @@
 #include "models/ambulance.hpp"
 #include "models/hospital.hpp"
 #include "db/postgres.hpp"
+#include "logic/simulation.hpp"
 
 using asio::ip::tcp;
 
 class Server {
-public:
-  Server(asio::io_context &io_context, int port, 
-        std::unordered_map<int, Ambulance> &ambulances,
-        std::unordered_map<int, Hospital> &hospitals,
-        Postgres &db);
+  public:
+    Server(asio::io_context &io_context, int port, 
+          std::unordered_map<int, Ambulance> &ambulances,
+          std::unordered_map<int, Hospital> &hospitals,
+          Postgres &db,
+          Simulation &simulation
+        );
 
-private:
-  void accept_client();
+  private:
+    void accept_client();
 
-  asio::io_context &io_context;
-  tcp::acceptor acceptor;
+    asio::io_context &io_context;
+    tcp::acceptor acceptor;
 
-  std::unordered_map<int, Ambulance> &ambulances;
-  std::unordered_map<int, Hospital> &hospitals;
-  Postgres &db;
+    std::unordered_map<int, Ambulance> &ambulances;
+    std::unordered_map<int, Hospital> &hospitals;
+    Simulation &simulation;
+    Postgres &db;
 };

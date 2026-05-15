@@ -16,8 +16,6 @@ int ambulance_id = 0;
 int hospital_id = 0;
 int call_id = 0;
 
-Time current_time = {0, 0};
-
 int generate_id(std::string s) {
   if (s == "ambulance") {
     return ambulance_id++;
@@ -76,15 +74,11 @@ Hospital generate_hospital(Bounds &b, std::mt19937 &gen) {
 Call generate_call(Bounds &b, std::mt19937 &gen) {
   int id = generate_id("call");
   std::uniform_int_distribution<int> priority(1, 5);
-  std::uniform_int_distribution<int> time_gap(1, 10);
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
 
   Call c;
   c.id = id;
-
-  current_time = find_next_time(current_time, time_gap(gen));
-  c.time = current_time;
 
   std::string d = "";
 

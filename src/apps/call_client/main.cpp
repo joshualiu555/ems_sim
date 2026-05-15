@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <chrono>
+#include <thread>
+#include <ctime>
 
 #include <asio.hpp>
 #include <nlohmann/json.hpp>
@@ -12,28 +15,27 @@ using asio::ip::tcp;
 using json = nlohmann::json;
 
 int main() {
-  Bounds b = {-100, 100, -100, 100};
+  Bounds b = {-30, 30, -30, 30};
   std::random_device rd;
   std::mt19937 gen(rd());
-
-  std::vector<Call> calls;
-  for (int i = 0; i < 20; i++) {
-    calls.push_back(generate_call(b, gen));
-  }
-  sort(calls.begin(), calls.end());
+  std::uniform_int_distribution<> time_dist(1, 7); 
 
   asio::io_context io_context;
   tcp::socket socket(io_context);
   tcp::resolver resolver(io_context);
   
   asio::connect(socket, resolver.resolve("127.0.0.1", "8080"));
+  std::cout << "Client started" << '\n';
 
-  for (const Call &c : calls) {
+  int current_time = 0;
+  while (true) {
+    Call c = generate_call(b, gen);
+    c.time = current_time;
+
     json call_json = {
       {"id", c.id},
       {"priority", c.priority},
-      {"hour", c.time.hour},
-      {"minute", c.time.minute},
+      {"time", c.time},
       {"lat", c.location.lat},
       {"lon", c.location.lon}
     };
@@ -44,15 +46,14 @@ int main() {
     asio::streambuf buffer;
     asio::read_until(socket, buffer, '\n');
     std::istream is(&buffer);
-    std::string dispatch;
-    std::getline(is, dispatch);
+    std::string response;
+    std::getline(is, response);
+    
+    std::cout << response << '\n';
 
-    std::cout << dispatch << '\n';
-
-    // json response = json::parse(response_line);
-    // if (response["type"] == "dispatch_assignment") {
-    //   std::cout << "Assigned Ambulance ID: " << response["ambulance"]["id"] << "\n";
-    // }
+    int time_elapsed = time_dist(gen);
+    current_time += time_elapsed;
+    std::this_thread::sleep_for(std::chrono::seconds(time_elapsed));
   }
 
   return 0;

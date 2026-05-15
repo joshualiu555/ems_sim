@@ -25,10 +25,10 @@ std::optional<Event> handle_call_received(
   if (!dispatch) return std::nullopt;
   db.insert_dispatch(*dispatch);
 
-  int time = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].location);
+  int time_elapsed = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].location);
 
   Event next = {
-    find_next_time(e.time, time),
+    e.time + time_elapsed,
     EventType::AmbulanceArriveAtScene,
     e.call_id,
     dispatch -> ambulance_id,
@@ -44,16 +44,16 @@ std::optional<Event> handle_call_received(
 std::optional<Event> handle_ambulance_arrive_at_scene(Event &e, std::unordered_map<int, Call> &calls) {
   // calculate time to stay on scene
   Call call = calls[e.call_id];
-  int time;
+  int time_elapsed;
   if (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) {
-    time = 5;
+    time_elapsed = 5;
   } else {
-    time = 10;
+    time_elapsed = 10;
   }
-  add_time(time);
+  add_time(time_elapsed);
 
   Event next = {
-    find_next_time(e.time, time),
+    e.time + time_elapsed,
     EventType::TransportStart,
     e.call_id,
     e.ambulance_id,
@@ -70,10 +70,10 @@ std::optional<Event> handle_transport_start(
 ) {
   // calclulate time to reach hospital
   Call call = calls[e.call_id];
-  int time = find_time_elapsed(call.location, hospitals[e.hospital_id].location);
+  int time_elapsed = find_time_elapsed(call.location, hospitals[e.hospital_id].location);
 
   Event next = {
-    find_next_time(e.time, time),
+    e.time + time_elapsed,
     EventType::AmbulanceArriveAtHospital,
     e.call_id,
     e.ambulance_id,
@@ -94,11 +94,11 @@ std::optional<Event> handle_ambulance_arrive_at_hospital(
   // calculate time to get back to station
   Call call = calls[e.call_id];
   int distance = find_distance(hospitals[e.hospital_id].location, ambulances[e.ambulance_id].location);
-  int time = distance / 10;
-  add_time(time);
+  int time_elapsed = distance / 10;
+  add_time(time_elapsed);
 
   Event next = {
-    find_next_time(e.time, time),
+    e.time + time_elapsed,
     EventType::AmbulanceBackAtStation,
     e.call_id,
     e.ambulance_id,

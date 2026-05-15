@@ -12,26 +12,27 @@
 #include "db/postgres.hpp"
 
 class Simulation {
-public:
-  Simulation(
-    std::unordered_map<int, Call> &calls, 
-    std::unordered_map<int, Ambulance> &ambulances, 
-    std::unordered_map<int, Hospital> &hospitals,
-    Postgres &db
-  );
+  public:
+    int current_time = 0;
 
-  void run();
+    Simulation(
+      std::unordered_map<int, Ambulance> &ambulances, 
+      std::unordered_map<int, Hospital> &hospitals,
+      Postgres &db
+    );
 
-private:
-  std::unordered_map<int, Call> &calls;
-  std::unordered_map<int, Ambulance> &ambulances;
-  std::unordered_map<int, Hospital> &hospitals;
+    void add_call(Call &c);
+    void run(int current_time);
 
-  Postgres &db;
+  private:
+    std::unordered_map<int, Call> calls;
+    std::unordered_map<int, Ambulance> &ambulances;
+    std::unordered_map<int, Hospital> &hospitals;
 
-  std::priority_queue<Event> pq;
+    Postgres &db;
 
-  void init();
-  std::optional<Event> create_next_event(Event &e);
+    std::priority_queue<Event> pq;
+
+    std::optional<Event> create_next_event(Event &e);
 };
  

@@ -11,23 +11,19 @@ using json = nlohmann::json;
 
 std::shared_ptr<Session> Session::create(
   asio::io_context &io_context,
-  std::unordered_map<int, Ambulance> &ambulances,
-  std::unordered_map<int, Hospital> &hospitals,
-  Postgres &db) 
+  Simulation &simulation
+) 
   {
-    return std::shared_ptr<Session>(new Session(io_context, ambulances, hospitals, db));
+    return std::shared_ptr<Session>(new Session(io_context, simulation));
   }
 
 Session::Session(
   asio::io_context &io_context,
-  std::unordered_map<int, Ambulance> &ambulances,
-  std::unordered_map<int, Hospital> &hospitals,
-  Postgres &db) 
+  Simulation &simulation
+) 
   : socket_(io_context), 
-    ambulances(ambulances), 
-    hospitals(hospitals), 
-    db(db) 
-  {}
+    simulation(simulation)
+{}
 
 tcp::socket& Session::socket() { 
   return socket_; 
@@ -47,21 +43,20 @@ void Session::read() {
         std::string line;
         std::getline(is, line);
 
-        json incoming_data = json::parse(line);
-        json response;
+        json request = json::parse(line);
 
         Call c;
-        c.id = incoming_data["id"];
-        c.location.lat = incoming_data["lat"];
-        c.location.lon = incoming_data["lon"];
+        c.id = request["id"];
+        c.priority = request["priority"];
+        c.time = simulation.current_time;
+        c.location.lat = request["lat"];
+        c.location.lon = request["lon"];
 
-        std::optional<Dispatch> dispatch = create_dispatch(c, ambulances, hospitals);
+        simulation.add_call(c);
 
-        if (dispatch) {
-          response["call_id"] = dispatch -> call_id;
-          response["ambulance_id"] = dispatch -> ambulance_id;
-          response["hospital_id"] = dispatch -> hospital_id;
-        } 
+        json response;
+        response["status"] = "success";
+        response["call_id"] = c.id;
 
         write(response.dump() + "\n");
       }

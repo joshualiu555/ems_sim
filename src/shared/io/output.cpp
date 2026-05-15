@@ -46,15 +46,15 @@ std::ostream &operator<<(std::ostream& os, const CallPriority &cp) {
 std::ostream &operator<<(std::ostream &os, const Event &e) {
   switch (e.event_type) {
     case EventType::CallReceived:
-      return os << "Station received call " << e.call_id << " at hour " << e.time.hour << " minute " << e.time.minute;
+      return os << "Station received call " << e.call_id << " at time " << e.time;
     case EventType::AmbulanceArriveAtScene:
-      return os << "Ambulance " << e.ambulance_id << " arrived at scene" << " at hour " << e.time.hour << " minute " << e.time.minute;
+      return os << "Ambulance " << e.ambulance_id << " arrived at scene" << " at time " << e.time;
     case EventType::TransportStart:
-      return os << "Ambulance " << e.ambulance_id << " started transport" << " at hour " << e.time.hour << " minute " << e.time.minute;
+      return os << "Ambulance " << e.ambulance_id << " started transport" << " at time " << e.time;
     case EventType::AmbulanceArriveAtHospital:
-      return os << "Ambulance " << e.ambulance_id << " arrived at hospital " << e.hospital_id << " at hour " << e.time.hour << " minute " << e.time.minute;
+      return os << "Ambulance " << e.ambulance_id << " arrived at hospital " << e.hospital_id << " at time " << e.time;
     case EventType::AmbulanceBackAtStation:
-      return os << "Ambulance " << e.ambulance_id << " arrived back at station " << e.hospital_id << " at hour " << e.time.hour << " minute " << e.time.minute;
+      return os << "Ambulance " << e.ambulance_id << " arrived back at station " << e.hospital_id << " at time " << e.time;
     default:
       return os << "Unknown"; 
   }

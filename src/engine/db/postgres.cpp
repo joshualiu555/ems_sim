@@ -89,10 +89,9 @@ void Postgres::insert_ambulance(const Ambulance &a) {
 
 void Postgres::insert_call(const Call &c) {
   execute_params(
-    "INSERT INTO calls (id, call_hour, call_minute, priority, description, lat, lon) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+    "INSERT INTO calls (id, call_time, priority, description, lat, lon) VALUES ($1, $2, $3, $4, $5, $6)",
     c.id,
-    c.time.hour,
-    c.time.minute,
+    c.time,
     to_string(c.priority),
     c.description,
     c.location.lat,
@@ -115,9 +114,8 @@ void Postgres::insert_event(const Event &e) {
   std::optional<int> h_id = e.hospital_id == -1 ? std::nullopt : std::optional<int>(e.hospital_id);
 
   execute_params(
-    "INSERT INTO events (event_hour, event_minute, event_type, call_id, ambulance_id, hospital_id) VALUES ($1, $2, $3, $4, $5, $6)",
-    e.time.hour,
-    e.time.minute,
+    "INSERT INTO events (event_time, event_type, call_id, ambulance_id, hospital_id) VALUES ($1, $2, $3, $4, $5)",
+    e.time,
     to_string(e.event_type),
     c_id,
     a_id,
