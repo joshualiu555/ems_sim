@@ -25,8 +25,8 @@ void Simulation::add_call(Call &c) {
     c.time,
     EventType::CallReceived,
     c.id,
-    -1,
-    -1
+    std::nullopt,
+    std::nullopt
   };
 
   pq.push(e);

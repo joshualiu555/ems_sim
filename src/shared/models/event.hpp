@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "helper.hpp"
 
 enum class EventType {
@@ -15,9 +17,9 @@ struct Event {
   int time;
   EventType event_type;
 
-  int call_id = -1;
-  int ambulance_id = -1;
-  int hospital_id = -1;
+  int call_id;
+  std::optional<int> ambulance_id; 
+  std::optional<int> hospital_id;
 
   bool operator<(const Event& e) const {
     return e.time < time;

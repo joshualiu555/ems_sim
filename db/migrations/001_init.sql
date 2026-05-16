@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS dispatches (
 CREATE UNLOGGED TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
     event_time INTEGER NOT NULL,
-    event_type TEXT NOT NULL, -- CallReceived, AmbulanceArriveAtScene, TransportStart, AmbulanceArriveAtHospital, AmbulanceBackAtStation
-    call_id INTEGER,
-    ambulance_id INTEGER,
-    hospital_id INTEGER
+    event_type TEXT NOT NULL, -- CallReceived, AmbulanceArriveAtScene, TransportStart, AmbulanceArriveAtHospital, AmbulanceBackAtStation, PatientDischarged
+    call_id INT REFERENCES calls(id) ON DELETE CASCADE,
+    ambulance_id INT REFERENCES ambulances(id) ON DELETE SET NULL,
+    hospital_id INT REFERENCES hospitals(id) ON DELETE SET NULL
 );

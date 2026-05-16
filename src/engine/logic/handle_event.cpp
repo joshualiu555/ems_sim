@@ -29,7 +29,7 @@ std::vector<Event> handle_call_received(
     EventType::AmbulanceArriveAtScene,
     e.call_id,
     dispatch -> ambulance_id,
-    dispatch -> hospital_id
+    dispatch -> hospital_id  
   };
 
   ambulances[dispatch -> ambulance_id].ambulance_status = AmbulanceStatus::Transporting;
@@ -56,8 +56,8 @@ std::vector<Event> handle_ambulance_arrive_at_scene(
     e.hospital_id
   };
 
-  ambulances[e.ambulance_id].current_location = calls.at(e.call_id).location;
-  db.update_ambulance_location(calls.at(e.call_id).location.lat, calls.at(e.call_id).location.lon, e.ambulance_id);
+  ambulances[e.ambulance_id.value()].current_location = calls.at(e.call_id).location;
+  db.update_ambulance_location(calls.at(e.call_id).location.lat, calls.at(e.call_id).location.lon, e.ambulance_id.value());
 
   return {next};
 }
@@ -71,7 +71,8 @@ std::vector<Event> handle_transport_start(
 ) 
 {
   Call call = calls.at(e.call_id);
-  int time_elapsed = find_time_elapsed(call.location, hospitals.at(e.hospital_id).location);
+  
+  int time_elapsed = find_time_elapsed(call.location, hospitals.at(e.hospital_id.value()).location);
 
   Event next = {
     e.time + time_elapsed,
@@ -94,8 +95,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
 {
   Call call = calls.at(e.call_id);
   
-  // return to station
-  int distance = find_distance(hospitals.at(e.hospital_id).location, ambulances.at(e.ambulance_id).station_location);
+  int distance = find_distance(hospitals.at(e.hospital_id.value()).location, ambulances.at(e.ambulance_id.value()).station_location);
   int time_to_station = distance / 10;
 
   Event back_at_station = {
@@ -113,15 +113,15 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
     e.time + discharge_time,
     EventType::PatientDischarged,
     e.call_id,
-    -1, // no ambulance needed anymore
+    std::nullopt, 
     e.hospital_id
   };
 
-  ambulances.at(e.ambulance_id).current_location = hospitals.at(e.hospital_id).location;
-  db.update_ambulance_location(hospitals.at(e.hospital_id).location.lat, hospitals.at(e.hospital_id).location.lon, e.ambulance_id);
+  ambulances.at(e.ambulance_id.value()).current_location = hospitals.at(e.hospital_id.value()).location;
+  db.update_ambulance_location(hospitals.at(e.hospital_id.value()).location.lat, hospitals.at(e.hospital_id.value()).location.lon, e.ambulance_id.value());
   
-  hospitals[e.hospital_id].num_patients++;
-  db.update_hospital(hospitals[e.hospital_id].num_patients, e.hospital_id);
+  hospitals[e.hospital_id.value()].num_patients++;
+  db.update_hospital(hospitals[e.hospital_id.value()].num_patients, e.hospital_id.value());
 
   return {back_at_station, discharge_event};
 }
@@ -132,10 +132,10 @@ std::vector<Event> handle_ambulance_back_at_station(
   Postgres &db
 ) 
 {
-  ambulances[e.ambulance_id].current_location = ambulances[e.ambulance_id].station_location;
-  ambulances[e.ambulance_id].ambulance_status = AmbulanceStatus::Available;
+  ambulances[e.ambulance_id.value()].current_location = ambulances[e.ambulance_id.value()].station_location;
+  ambulances[e.ambulance_id.value()].ambulance_status = AmbulanceStatus::Available;
   
-  db.update_ambulance_status("Available", e.ambulance_id);
+  db.update_ambulance_status("Available", e.ambulance_id.value());
 
   return {};
 }
@@ -146,9 +146,10 @@ std::vector<Event> handle_patient_discharged(
   Postgres &db
 ) 
 {
+  
   // free up a hospital bed
-  hospitals[e.hospital_id].num_patients--;
-  db.update_hospital(hospitals[e.hospital_id].num_patients, e.hospital_id);
+  hospitals[e.hospital_id.value()].num_patients--;
+  db.update_hospital(hospitals[e.hospital_id.value()].num_patients, e.hospital_id.value());
 
   return {}; 
 }

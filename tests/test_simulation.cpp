@@ -71,7 +71,7 @@ TEST_F(HandleEventTest, CallReceivedToAmbulanceArriveAtScene) {
   EXPECT_EQ(next_events[0].event_type, EventType::AmbulanceArriveAtScene);
   EXPECT_EQ(next_events[0].ambulance_id, 1);
   EXPECT_EQ(next_events[0].hospital_id, 1);
-  EXPECT_EQ(ambulances[next_events[0].ambulance_id].ambulance_status, AmbulanceStatus::Transporting);
+  EXPECT_EQ(ambulances[next_events[0].ambulance_id.value()].ambulance_status, AmbulanceStatus::Transporting);
 }
 
 TEST_F(HandleEventTest, CallReceivedFailure) {
