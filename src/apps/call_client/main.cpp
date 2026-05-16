@@ -25,14 +25,31 @@ int main() {
   tcp::resolver resolver(io_context);
   
   asio::connect(socket, resolver.resolve("127.0.0.1", "8080"));
-  std::cout << "Client started" << '\n';
+  std::cout << "Client connected to server" << '\n';
+
+  json create_command = {
+    {"command", "create_simulation"}
+  };
+  std::string create_request= create_command.dump() + '\n';
+  asio::write(socket, asio::buffer(create_request));
+
+  asio::streambuf create_buffer;
+  asio::read_until(socket, create_buffer, '\n');
+  std::istream create_is(&create_buffer);
+  std::string create_response;
+  std::getline(create_is, create_response);
+
+  int simulation_id = json::parse(create_response)["simulation_id"];
+  
+  std::cout << "Started new simulation" << '\n';
 
   int current_time = 0;
   while (true) {
-    Call c = generate_call(b, gen);
+    Call c = generate_call(b, gen, simulation_id);
     c.time = current_time;
 
     json call_json = {
+      {"simulation_id", simulation_id},
       {"id", c.id},
       {"priority", c.priority},
       {"time", c.time},
@@ -43,13 +60,13 @@ int main() {
     std::string call_string = call_json.dump() + '\n';
     asio::write(socket, asio::buffer(call_string));
 
-    asio::streambuf buffer;
-    asio::read_until(socket, buffer, '\n');
-    std::istream is(&buffer);
-    std::string response;
-    std::getline(is, response);
+    asio::streambuf call_buffer;
+    asio::read_until(socket, call_buffer, '\n');
+    std::istream is(&call_buffer);
+    std::string call_response;
+    std::getline(is, call_response);
     
-    std::cout << response << '\n';
+    std::cout << call_response << '\n';
 
     int time_elapsed = time_dist(gen);
     current_time += time_elapsed;

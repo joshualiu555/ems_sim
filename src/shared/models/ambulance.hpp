@@ -14,6 +14,7 @@ enum class AmbulanceType {
 
 struct Ambulance {
   int id;
+  int simulation_id;
   AmbulanceStatus ambulance_status;
   AmbulanceType ambulance_type;
   Location station_location;

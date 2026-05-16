@@ -23,6 +23,15 @@ pqxx::result Postgres::query(const std::string &sql) {
   return result;
 }
 
+int Postgres::create_simulation() {
+  pqxx::work txn(conn);
+  
+  pqxx::row row = txn.exec("INSERT INTO simulations DEFAULT VALUES RETURNING id;").one_row();
+  txn.commit();
+
+  return row[0].as<int>();
+}
+
 bool Postgres::check_if_migration_exists(const std::string &file) {
   pqxx::read_transaction txn(conn);
     
@@ -65,45 +74,46 @@ void Postgres::run_migrations(const std::string &dir) {
   }
 }
 
-void Postgres::insert_hospital(const Hospital &h) {
-  execute_params(
-    "INSERT INTO hospitals (id, num_patients, capacity, lat, lon) VALUES ($1, $2, $3, $4, $5)",
-    h.id,
-    h.num_patients,
-    h.capacity,
-    h.location.lat,
+int Postgres::insert_hospital(const Hospital &h) {
+  return return_execute_params(
+    "INSERT INTO hospitals (simulation_id, num_patients, capacity, lat, lon) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+    h.simulation_id, 
+    h.num_patients, 
+    h.capacity, 
+    h.location.lat, 
     h.location.lon
   );
 }
 
-void Postgres::insert_ambulance(const Ambulance &a) {
-  execute_params(
-    "INSERT INTO ambulances (id, status, type, station_lat, station_lon, current_lat, current_lon) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-    a.id,
-    to_string(a.ambulance_status),
-    to_string(a.ambulance_type),
-    a.station_location.lat,
-    a.station_location.lon,
-    a.station_location.lat,
+int Postgres::insert_ambulance(const Ambulance &a) {
+  return return_execute_params(
+    "INSERT INTO ambulances (simulation_id, status, type, station_lat, station_lon, current_lat, current_lon) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+    a.simulation_id, 
+    to_string(a.ambulance_status), 
+    to_string(a.ambulance_type), 
+    a.station_location.lat, 
+    a.station_location.lon, 
+    a.station_location.lat, 
     a.station_location.lon
   );
 }
 
-void Postgres::insert_call(const Call &c) {
-  execute_params(
-    "INSERT INTO calls (id, call_time, priority, description, lat, lon) VALUES ($1, $2, $3, $4, $5, $6)",
-    c.id,
-    c.time,
-    to_string(c.priority),
-    c.description,
-    c.location.lat,
+int Postgres::insert_call(const Call &c) {
+  return return_execute_params(
+    "INSERT INTO calls (simulation_id, call_time, priority, description, lat, lon) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+    c.simulation_id, 
+    c.time, 
+    to_string(c.priority), 
+    c.description, 
+    c.location.lat, 
     c.location.lon
   );
 }
 
 void Postgres::insert_dispatch(const Dispatch &d) {
   execute_params(
-    "INSERT INTO dispatches (call_id, ambulance_id, hospital_id) VALUES ($1, $2, $3)",
+    "INSERT INTO dispatches (simulation_id, call_id, ambulance_id, hospital_id) VALUES ($1, $2, $3, $4)",
+    d.simulation_id,
     d.call_id,
     d.ambulance_id,
     d.hospital_id
@@ -111,19 +121,18 @@ void Postgres::insert_dispatch(const Dispatch &d) {
 }
 
 void Postgres::insert_event(const Event &e) {
-  std::optional<int> c_id = e.call_id == -1 ? std::nullopt : std::optional<int>(e.call_id);
-  std::optional<int> a_id = e.ambulance_id == -1 ? std::nullopt : std::optional<int>(e.ambulance_id);
-  std::optional<int> h_id = e.hospital_id == -1 ? std::nullopt : std::optional<int>(e.hospital_id);
-
   execute_params(
-    "INSERT INTO events (event_time, event_type, call_id, ambulance_id, hospital_id) VALUES ($1, $2, $3, $4, $5)",
+    "INSERT INTO events (simulation_id, event_time, event_type, call_id, ambulance_id, hospital_id) VALUES ($1, $2, $3, $4, $5, $6)",
+    e.simulation_id,
     e.time,
     to_string(e.event_type),
-    c_id,
-    a_id,
-    h_id
+    e.call_id,
+    e.ambulance_id,
+    e.hospital_id
   );
 }
+
+// don't need simulation_id as parameter because those id's are serial (unique)
 
 void Postgres::update_hospital(int num_patients, int id) {
   execute_params(

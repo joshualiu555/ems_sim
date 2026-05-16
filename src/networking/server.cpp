@@ -4,18 +4,18 @@
 
 Server::Server(asio::io_context& io_context, 
                const int port,
-               Simulation &simulation
+               SimulationHandler &simulation_handler
               )
   : io_context(io_context),
     acceptor(io_context, tcp::endpoint(tcp::v4(), port)),
-    simulation(simulation)
+    simulation_handler(simulation_handler)
   {
     std::cout << "Server started" << '\n';
     accept_client();
   }
 
 void Server::accept_client() {
-  auto client = Session::create(io_context, simulation);
+  auto client = Session::create(io_context, simulation_handler);
   
   acceptor.async_accept(client -> socket(),
     [this, client](std::error_code ec) {

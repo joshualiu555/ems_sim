@@ -6,6 +6,7 @@
 
 #include <asio.hpp>
 
+#include "logic/simulation_handler.hpp"
 #include "logic/simulation.hpp"
 
 #include "models/ambulance.hpp"
@@ -18,7 +19,7 @@ class Session:public std::enable_shared_from_this<Session> {
   public:
     static std::shared_ptr<Session> create(
       asio::io_context &io_context,
-      Simulation &simulation
+      SimulationHandler &simulation_handler
     );
 
     tcp::socket &socket();
@@ -28,7 +29,7 @@ class Session:public std::enable_shared_from_this<Session> {
   private:
       Session(
         asio::io_context &io_context,
-        Simulation &simulation
+        SimulationHandler &simulation_handler
       );
 
       void read();
@@ -38,5 +39,5 @@ class Session:public std::enable_shared_from_this<Session> {
       asio::streambuf read_buffer;
       std::string write_message;
 
-      Simulation &simulation;
+      SimulationHandler &simulation_handler;
 };

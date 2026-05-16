@@ -16,18 +16,21 @@ class Simulation {
     int current_time = 0;
 
     Simulation(
-      std::unordered_map<int, Ambulance> &ambulances, 
-      std::unordered_map<int, Hospital> &hospitals,
+      int id,
       Postgres &db
     );
+
+    void init(int num_ambulances, int num_hospitals);
 
     void add_call(Call &c);
     void run(int current_time);
 
   private:
+    int id;
+
     std::unordered_map<int, Call> calls;
-    std::unordered_map<int, Ambulance> &ambulances;
-    std::unordered_map<int, Hospital> &hospitals;
+    std::unordered_map<int, Ambulance> ambulances;
+    std::unordered_map<int, Hospital> hospitals;
 
     Postgres &db;
 

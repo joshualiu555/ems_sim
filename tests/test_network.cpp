@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include "db/postgres.hpp"
-#include "config/config.hpp"
+#include "db/config.hpp"
 
 #include "server.hpp"
 
@@ -23,6 +23,7 @@ Call parse_json(const std::string& payload, int server_current_time) {
   
   Call c;
   c.id = request.at("id"); 
+  c.simulation_id = request.at("simulation_id");
   c.priority = request.at("priority");
   c.time = server_current_time; 
   c.location.lat = request.at("lat");
@@ -32,10 +33,10 @@ Call parse_json(const std::string& payload, int server_current_time) {
 }
 
 TEST(NetworkParsingTest, ValidJson) {
-  std::string valid_payload = R"({"id": 1, "priority": 1, "time": 999, "lat": 0, "lon": 0})";
+  std::string payload = R"({"simulation_id": 1, "id": 1, "priority": 1, "time": 999, "lat": 0, "lon": 0})";
   int server_current_time = 10;
 
-  Call c = parse_json(valid_payload, server_current_time);
+  Call c = parse_json(payload, server_current_time);
 
   EXPECT_EQ(c.id, 1);
   // prove the master server clock overwrites the client's "999"
@@ -46,7 +47,7 @@ TEST(NetworkParsingTest, ValidJson) {
 
 TEST(NetworkParsingTest, MissingRequiredFields) {
   // missing lat field
-  std::string payload = R"({"id": 1, "time": 10, "priority": 1, "lon": 0})";
+  std::string payload = R"({"simulation_id": 1, "id": 1, "time": 10, "priority": 1, "lon": 0})";
 
   EXPECT_THROW({
     parse_json(payload, 10);
@@ -59,13 +60,13 @@ TEST(NetworkIntegrationTest, ClientServerEcho) {
   
   Postgres db(get_connection_url());
   db.run_migrations(MIGRATION_PATH);
-  db.execute("TRUNCATE calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
+  db.execute("TRUNCATE simulations, calls, ambulances, hospitals, dispatches, events RESTART IDENTITY CASCADE;");
 
-  Simulation sim(ambulances, hospitals, db);
+  SimulationHandler simulation_handler(db);
 
   // start server in background thread on different port
   asio::io_context server_io;
-  Server server(server_io, 8000, sim); 
+  Server server(server_io, 8000, simulation_handler); 
   std::thread server_thread([&]() { 
     server_io.run(); 
   });
@@ -78,9 +79,27 @@ TEST(NetworkIntegrationTest, ClientServerEcho) {
   tcp::socket socket(client_io);
   socket.connect(tcp::endpoint(asio::ip::make_address("127.0.0.1"), 8000));
 
-  std::string payload = R"({"id": 1, "time": 10, "priority": 1, "lat": 0, "lon": 0})";
-  payload += '\n';
-  asio::write(socket, asio::buffer(payload));
+  // generate a simulation
+  json create_request = {{"command", "create_simulation"}};
+  std::string create_request_string = create_request.dump() + "\n";
+  asio::write(socket, asio::buffer(create_request_string));
+  asio::streambuf create_response_buffer;
+  asio::read_until(socket, create_response_buffer, '\n');
+  std::istream response_is(&create_response_buffer);
+  std::string create_response;
+  std::getline(response_is, create_response);
+  int simulation_id = json::parse(create_response)["simulation_id"];
+
+  json payload_json = {
+    {"simulation_id", simulation_id},
+    {"id", 1},
+    {"time", 10},
+    {"priority", 1},
+    {"lat", 0},
+    {"lon", 0}
+  };
+  std::string payload_string = payload_json.dump() + '\n';
+  asio::write(socket, asio::buffer(payload_string));
 
   asio::streambuf buffer;
   asio::read_until(socket, buffer, '\n');

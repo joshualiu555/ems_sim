@@ -12,22 +12,7 @@
 #include "generate.hpp"
 #include "calc.hpp"
 
-int ambulance_id = 0;
-int hospital_id = 0;
-int call_id = 0;
-
-int generate_id(const std::string s) {
-  if (s == "ambulance") {
-    return ambulance_id++;
-  } else if (s == "hospital") {
-    return hospital_id++;
-  } else {
-    return call_id++;
-  }
-}
-
-Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen) {
-  int id = generate_id("ambulance");
+Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen, int simulation_id) {
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
   std::bernoulli_distribution als(0.5);
@@ -40,7 +25,8 @@ Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen) {
   };
 
   Ambulance a = {
-    id,
+    0, // dummy id that will later be replaced by the database, the source of truth
+    simulation_id,
     as,
     at,
     l,
@@ -50,8 +36,7 @@ Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen) {
   return a;
 }
 
-Hospital generate_hospital(const Bounds &b, std::mt19937 &gen) {
-  int id = generate_id("hospital");
+Hospital generate_hospital(const Bounds &b, std::mt19937 &gen, int simulation_id) {
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
   std::uniform_int_distribution<int> capacity(1, 5);
@@ -63,7 +48,8 @@ Hospital generate_hospital(const Bounds &b, std::mt19937 &gen) {
   };
 
   Hospital h = {
-    id,
+    0,
+    simulation_id,
     0,
     c,
     l
@@ -72,14 +58,14 @@ Hospital generate_hospital(const Bounds &b, std::mt19937 &gen) {
   return h;
 }
 
-Call generate_call(const Bounds &b, std::mt19937 &gen) {
-  int id = generate_id("call");
+Call generate_call(const Bounds &b, std::mt19937 &gen, int simulation_id) {
   std::uniform_int_distribution<int> priority(1, 5);
   std::uniform_real_distribution<double> lat(b.lat_west, b.lat_east);
   std::uniform_real_distribution<double> lon(b.lon_north, b.lon_south);
 
   Call c;
-  c.id = id;
+  c.simulation_id = simulation_id;
+  c.id = 0;
 
   std::string d = "";
 

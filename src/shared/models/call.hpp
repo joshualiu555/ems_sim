@@ -14,6 +14,7 @@ enum class CallPriority {
 
 struct Call {
   int id;
+  int simulation_id;
   int time;
   CallPriority priority;
   std::string description;

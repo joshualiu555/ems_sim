@@ -11,18 +11,18 @@ using json = nlohmann::json;
 
 std::shared_ptr<Session> Session::create(
   asio::io_context &io_context,
-  Simulation &simulation
+  SimulationHandler &simulation_handler
 ) 
   {
-    return std::shared_ptr<Session>(new Session(io_context, simulation));
+    return std::shared_ptr<Session>(new Session(io_context, simulation_handler));
   }
 
 Session::Session(
   asio::io_context &io_context,
-  Simulation &simulation
+  SimulationHandler &simulation_handler
 ) 
   : socket_(io_context), 
-    simulation(simulation)
+    simulation_handler(simulation_handler)
 {}
 
 tcp::socket& Session::socket() { 
@@ -36,7 +36,10 @@ void Session::start() {
 void Session::read() {
   auto self(shared_from_this());
 
-  asio::async_read_until(socket_, read_buffer, '\n',
+  asio::async_read_until(
+    socket_,
+    read_buffer,
+    '\n',
     [this, self](std::error_code ec, std::size_t) {
       if (!ec) {
         std::istream is(&read_buffer);
@@ -44,20 +47,52 @@ void Session::read() {
         std::getline(is, line);
 
         json request = json::parse(line);
-
-        Call c;
-        c.id = request["id"];
-        c.priority = request["priority"];
-        c.time = simulation.current_time;
-        c.location.lat = request["lat"];
-        c.location.lon = request["lon"];
-
-        simulation.add_call(c);
-
         json response;
-        response["call_id"] = c.id;
 
-        write(response.dump() + "\n");
+        if (
+          request.contains("command") &&
+          request["command"] == "create_simulation"
+        ) {
+          int simulation_id =
+            simulation_handler.add_simulation();
+
+          response["simulation_id"] = simulation_id;
+          response["status"] =
+            "Simulation created and populated!";
+
+          write(response.dump() + "\n");
+          return;
+        }
+
+        if (request.contains("simulation_id")) {
+          int simulation_id =
+            request.at("simulation_id");
+
+          Simulation* sim =
+            simulation_handler.get_simulation(simulation_id);
+
+          if (sim == nullptr) {
+            response["error"] =
+              "Simulation not found";
+          } else {
+            Call c;
+
+            c.id = request.at("id");
+            c.priority = request.at("priority");
+            c.time = sim->current_time;
+
+            c.location.lat = request.at("lat");
+            c.location.lon = request.at("lon");
+
+            sim->add_call(c);
+
+            response["call_id"] = c.id;
+            response["status"] = "Call added";
+          }
+
+          write(response.dump() + "\n");
+          return;
+        }
       }
     }
   );

@@ -14,8 +14,6 @@ struct Bounds {
   int lon_south;
 };
 
-int generate_id(const std::string s);
-
-Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen);
-Hospital generate_hospital(const Bounds &b, std::mt19937 &gen);
-Call generate_call(const Bounds &b, std::mt19937 &gen);
+Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen, int simulation_id);
+Hospital generate_hospital(const Bounds &b, std::mt19937 &gen, int simulation_id);
+Call generate_call(const Bounds &b, std::mt19937 &gen, int simulation_id);

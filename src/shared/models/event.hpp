@@ -14,6 +14,8 @@ enum class EventType {
 };
 
 struct Event {
+  int simulation_id;
+  
   int time;
   EventType event_type;
 

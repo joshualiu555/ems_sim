@@ -7,6 +7,7 @@
 #include "session.hpp"
 
 #include "db/postgres.hpp"
+#include "logic/simulation_handler.hpp"
 #include "logic/simulation.hpp"
 
 #include "models/ambulance.hpp"
@@ -18,7 +19,7 @@ class Server {
   public:
     Server(asio::io_context &io_context, 
            const int port, 
-           Simulation &simulation
+           SimulationHandler &simulation_handler
           );
 
   private:
@@ -27,5 +28,5 @@ class Server {
     asio::io_context &io_context;
     tcp::acceptor acceptor;
 
-    Simulation &simulation;
+    SimulationHandler &simulation_handler;
 };

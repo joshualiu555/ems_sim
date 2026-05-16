@@ -22,13 +22,23 @@ class Postgres {
       txn.exec(sql, pqxx::params{std::forward<Args>(args)...});
       txn.commit();
     }
+    template <typename... Args>
+    int return_execute_params(const std::string& sql, Args&&... args) {
+        pqxx::work txn(conn);
+        pqxx::row row = txn.exec(sql, pqxx::params(std::forward<Args>(args)...)).one_row();
+        txn.commit();
+        return row[0].as<int>();
+    }
+
     pqxx::result query(const std::string &sql);
+
+    int create_simulation();
 
     void run_migrations(const std::string &dir);
 
-    void insert_hospital(const Hospital &h);
-    void insert_ambulance(const Ambulance &a);
-    void insert_call(const Call &c);
+    int insert_hospital(const Hospital &h);
+    int insert_ambulance(const Ambulance &a);
+    int insert_call(const Call &c);
     void insert_dispatch(const Dispatch &d);
     void insert_event(const Event &e);
 

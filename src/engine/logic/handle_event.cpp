@@ -25,6 +25,7 @@ std::vector<Event> handle_call_received(
   int time_elapsed = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].current_location);
 
   Event next = {
+    e.simulation_id,
     e.time + time_elapsed,
     EventType::AmbulanceArriveAtScene,
     e.call_id,
@@ -49,6 +50,7 @@ std::vector<Event> handle_ambulance_arrive_at_scene(
   int time_elapsed = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 5 : 10;
 
   Event next = {
+    e.simulation_id,
     e.time + time_elapsed,
     EventType::TransportStart,
     e.call_id,
@@ -75,6 +77,7 @@ std::vector<Event> handle_transport_start(
   int time_elapsed = find_time_elapsed(call.location, hospitals.at(e.hospital_id.value()).location);
 
   Event next = {
+    e.simulation_id,
     e.time + time_elapsed,
     EventType::AmbulanceArriveAtHospital,
     e.call_id,
@@ -99,6 +102,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   int time_to_station = distance / 10;
 
   Event back_at_station = {
+    e.simulation_id,
     e.time + time_to_station,
     EventType::AmbulanceBackAtStation,
     e.call_id,
@@ -110,6 +114,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   int discharge_time = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 10 : 20;
   
   Event discharge_event = {
+    e.simulation_id,
     e.time + discharge_time,
     EventType::PatientDischarged,
     e.call_id,

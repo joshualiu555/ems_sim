@@ -1,8 +1,9 @@
 add_library(engine STATIC
-    config/config.cpp
+    db/config.cpp
     db/postgres.cpp
     logic/dispatch.cpp
     logic/handle_event.cpp
+    logic/simulation_handler.cpp
     logic/simulation.cpp
 )
 

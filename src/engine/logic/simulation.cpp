@@ -8,20 +8,43 @@
 #include "io/output.hpp"
 
 #include "util/calc.hpp"
+#include "util/generate.hpp"
 
 Simulation::Simulation(
-  std::unordered_map<int, Ambulance> &ambulances, 
-  std::unordered_map<int, Hospital> &hospitals,
+  int id,
   Postgres &db
-) : ambulances(ambulances), hospitals(hospitals), db(db) 
+) : 
+  id(id),
+  db(db)
 {}
 
+void Simulation::init(int num_ambulances, int num_hospitals) {
+  Bounds b = {-30, 30, -30, 30};
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  for (int i = 0; i < num_ambulances; i++) {
+    Ambulance a = generate_ambulance(b, gen, this -> id);
+    a.id = db.insert_ambulance(a);   
+    this -> ambulances[a.id] = a; 
+  }
+
+  for (int i = 0; i < num_hospitals; i++) {
+    Hospital h = generate_hospital(b, gen, this -> id);
+    h.id = db.insert_hospital(h); 
+    this -> hospitals[h.id] = h; 
+  }
+}
+
 void Simulation::add_call(Call &c) {
+  c.simulation_id = this -> id;
+
+  c.id = db.insert_call(c); 
+
   calls[c.id] = c; 
-  
-  db.insert_call(c); 
 
   Event e = {
+    c.simulation_id,
     c.time,
     EventType::CallReceived,
     c.id,
