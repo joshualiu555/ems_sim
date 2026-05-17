@@ -20,9 +20,9 @@ class HandleEventTest:public::testing::Test {
     std::unordered_map<int, Hospital> hospitals;
 
     void SetUp() override {
-      calls = {{1, {1, simulation_id, 0, CallPriority::Alpha, "", {0.0, 0.0}}}};
-      ambulances = {{1, {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::BLS, {0.0, 0.0}, {0.0, 0.0}}}};
-      hospitals = {{1, {1, simulation_id, 0, 10, {0.0, 0.0}}}};
+      calls = {{1, {1, simulation_id, 0, CallPriority::Alpha, "", 0, 0}}};
+      ambulances = {{1, {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::BLS, 0, 0, 0, 0}}};
+      hospitals = {{1, {1, simulation_id, 0, 10, 0, 0}}};
 
       db = std::make_unique<Postgres>(get_connection_url());
       db -> run_migrations(MIGRATION_PATH);
@@ -32,21 +32,21 @@ class HandleEventTest:public::testing::Test {
 
     void init_db(AmbulanceStatus ambulance_status, bool insert_call = true) {
       if (insert_call) {
-        db -> execute_params("INSERT INTO calls (id, simulation_id, call_time, priority, description, lat, lon) VALUES (1, $1, 0, 'Alpha', 'Test Call', 0.0, 0.0);", simulation_id);
+        db -> execute_params("INSERT INTO calls (id, simulation_id, call_time, priority, description, x, y) VALUES (1, $1, 0, 'Alpha', 'Test Call', 0, 0);", simulation_id);
       }
-      db -> execute_params("INSERT INTO hospitals (id, simulation_id, capacity, lat, lon) VALUES (1, $1, 10, 0.0, 0.0);", simulation_id);
+      db -> execute_params("INSERT INTO hospitals (id, simulation_id, capacity, x, y) VALUES (1, $1, 10, 0, 0);", simulation_id);
       
       std::string status = (ambulance_status == AmbulanceStatus::Available) ? "Available" : "Transporting";
       db -> execute_params(
-        "INSERT INTO ambulances (id, simulation_id, status, type, station_lat, station_lon, current_lat, current_lon) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
+        "INSERT INTO ambulances (id, simulation_id, status, type, station_x, station_y, current_x, current_y) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
         1, 
         simulation_id, 
         status, 
         "BLS", 
-        0.0, 
-        0.0, 
-        0.0, 
-        0.0
+        0, 
+        0, 
+        0, 
+        0
       );
     }
 };

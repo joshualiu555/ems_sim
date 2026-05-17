@@ -26,14 +26,14 @@ Call parse_json(const std::string& payload, int server_current_time) {
   c.simulation_id = request.at("simulation_id");
   c.priority = request.at("priority");
   c.time = server_current_time; 
-  c.location.lat = request.at("lat");
-  c.location.lon = request.at("lon");
+  c.x = request.at("x");
+  c.y = request.at("y");
   
   return c;
 }
 
 TEST(NetworkParsingTest, ValidJson) {
-  std::string payload = R"({"simulation_id": 1, "id": 1, "priority": 1, "time": 999, "lat": 0, "lon": 0})";
+  std::string payload = R"({"simulation_id": 1, "id": 1, "priority": 1, "time": 999, "x": 0, "y": 0})";
   int server_current_time = 10;
 
   Call c = parse_json(payload, server_current_time);
@@ -41,13 +41,13 @@ TEST(NetworkParsingTest, ValidJson) {
   EXPECT_EQ(c.id, 1);
   // prove the master server clock overwrites the client's "999"
   EXPECT_EQ(c.time, 10); 
-  EXPECT_DOUBLE_EQ(c.location.lat, 0);
-  EXPECT_DOUBLE_EQ(c.location.lon, 0);
+  EXPECT_DOUBLE_EQ(c.x, 0);
+  EXPECT_DOUBLE_EQ(c.y, 0);
 }
 
 TEST(NetworkParsingTest, MissingRequiredFields) {
-  // missing lat field
-  std::string payload = R"({"simulation_id": 1, "id": 1, "time": 10, "priority": 1, "lon": 0})";
+  // missing x field
+  std::string payload = R"({"simulation_id": 1, "id": 1, "time": 10, "priority": 1, "y": 0})";
 
   EXPECT_THROW({
     parse_json(payload, 10);
@@ -95,8 +95,8 @@ TEST(NetworkIntegrationTest, ClientServerEcho) {
     {"id", 1},
     {"time", 10},
     {"priority", 1},
-    {"lat", 0},
-    {"lon", 0}
+    {"x", 0},
+    {"y", 0}
   };
   std::string payload_string = payload_json.dump() + '\n';
   asio::write(socket, asio::buffer(payload_string));

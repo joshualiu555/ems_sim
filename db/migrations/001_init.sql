@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS hospitals (
     simulation_id INTEGER NOT NULL REFERENCES simulations(id) ON DELETE CASCADE,
     num_patients INTEGER DEFAULT 0,
     capacity INTEGER NOT NULL,
-    lat DOUBLE PRECISION NOT NULL,
-    lon DOUBLE PRECISION NOT NULL
+    x DOUBLE PRECISION NOT NULL,
+    y DOUBLE PRECISION NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ambulances (
@@ -18,10 +18,10 @@ CREATE TABLE IF NOT EXISTS ambulances (
     simulation_id INTEGER NOT NULL REFERENCES simulations(id) ON DELETE CASCADE,
     status TEXT NOT NULL, -- Available, Transporting
     type TEXT NOT NULL, -- BLS, ALS
-    station_lat DOUBLE PRECISION NOT NULL,
-    station_lon DOUBLE PRECISION NOT NULL,
-    current_lat DOUBLE PRECISION NOT NULL,
-    current_lon DOUBLE PRECISION NOT NULL
+    station_x DOUBLE PRECISION NOT NULL,
+    station_y DOUBLE PRECISION NOT NULL,
+    current_x DOUBLE PRECISION NOT NULL,
+    current_y DOUBLE PRECISION NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS calls (
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS calls (
     call_time INTEGER NOT NULL,  
     priority TEXT NOT NULL, -- Alpha, Bravo, Charlie, Delta, Echo
     description TEXT,
-    lat DOUBLE PRECISION NOT NULL,
-    lon DOUBLE PRECISION NOT NULL
+    x DOUBLE PRECISION NOT NULL,
+    y DOUBLE PRECISION NOT NULL
 );
 
 -- Relationships

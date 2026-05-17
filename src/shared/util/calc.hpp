@@ -1,5 +1,3 @@
 #pragma once
 
-#include "models/helper.hpp"
-
-double find_distance(const Location a, const Location b);
+int find_distance(const int a_x, const int a_y, const int b_x, const int b_y);

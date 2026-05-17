@@ -1,5 +1,4 @@
 add_executable(tester
-  test_util.cpp
   test_dispatch.cpp
   test_simulation.cpp
   test_database.cpp

@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include "helper.hpp"
-
 enum class CallPriority {
   Alpha,
   Bravo,
@@ -18,9 +16,10 @@ struct Call {
   int time;
   CallPriority priority;
   std::string description;
-  Location location;
+  int x;
+  int y;
 
-  bool operator<(const Call &c) const {
+  bool operator < (const Call &c) const {
     return time < c.time;
   }
 };

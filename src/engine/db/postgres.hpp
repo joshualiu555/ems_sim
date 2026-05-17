@@ -41,10 +41,11 @@ class Postgres {
     int insert_call(const Call &c);
     void insert_dispatch(const Dispatch &d);
     void insert_event(const Event &e);
+    void insert_map(int simulation_id, const std::string &layout);
 
     void update_hospital(int num_patients, int id);
     void update_ambulance_status(std::string status, int id);
-    void update_ambulance_location(int lat, int lon, int id);
+    void update_ambulance_location(int x, int y, int id);
 
   private:
     pqxx::connection conn;

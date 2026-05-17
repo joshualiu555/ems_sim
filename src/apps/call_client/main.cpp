@@ -53,8 +53,8 @@ int main() {
       {"id", c.id},
       {"priority", c.priority},
       {"time", c.time},
-      {"lat", c.location.lat},
-      {"lon", c.location.lon}
+      {"x", c.x},
+      {"y", c.y}
     };
 
     std::string call_string = call_json.dump() + '\n';

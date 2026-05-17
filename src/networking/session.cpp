@@ -79,12 +79,12 @@ void Session::read() {
 
             c.id = request.at("id");
             c.priority = request.at("priority");
-            c.time = sim->current_time;
+            c.time = sim -> current_time;
 
-            c.location.lat = request.at("lat");
-            c.location.lon = request.at("lon");
+            c.x = request.at("x");
+            c.y = request.at("y");
 
-            sim->add_call(c);
+            sim -> add_call(c);
 
             response["call_id"] = c.id;
             response["status"] = "Call added";

@@ -3,8 +3,8 @@
 #include "util/calc.hpp"
 #include "db/postgres.hpp"
 
-int find_time_elapsed(Location a, Location b) {
-  int time = find_distance(a, b) / 5;
+int find_time_elapsed(int a_x, int a_y, int b_x, int b_y) {
+  int time = find_distance(a_x, a_y, b_x, b_y) / 5;
   return time;
 }
 
@@ -22,7 +22,7 @@ std::vector<Event> handle_call_received(
   
   db.insert_dispatch(*dispatch);
 
-  int time_elapsed = find_time_elapsed(call.location, ambulances[dispatch -> ambulance_id].current_location);
+  int time_elapsed = find_time_elapsed(call.x, call.y, ambulances[dispatch -> ambulance_id].current_x, ambulances[dispatch -> ambulance_id].current_y);
 
   Event next = {
     e.simulation_id,
@@ -58,8 +58,9 @@ std::vector<Event> handle_ambulance_arrive_at_scene(
     e.hospital_id
   };
 
-  ambulances[e.ambulance_id.value()].current_location = calls.at(e.call_id).location;
-  db.update_ambulance_location(calls.at(e.call_id).location.lat, calls.at(e.call_id).location.lon, e.ambulance_id.value());
+  ambulances[e.ambulance_id.value()].current_x = calls.at(e.call_id).x;
+  ambulances[e.ambulance_id.value()].current_y = calls.at(e.call_id).y;
+  db.update_ambulance_location(calls.at(e.call_id).x, calls.at(e.call_id).y, e.ambulance_id.value());
 
   return {next};
 }
@@ -74,7 +75,7 @@ std::vector<Event> handle_transport_start(
 {
   Call call = calls.at(e.call_id);
   
-  int time_elapsed = find_time_elapsed(call.location, hospitals.at(e.hospital_id.value()).location);
+  int time_elapsed = find_time_elapsed(call.x, call.y, hospitals.at(e.hospital_id.value()).x, hospitals.at(e.hospital_id.value()).y);
 
   Event next = {
     e.simulation_id,
@@ -98,7 +99,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
 {
   Call call = calls.at(e.call_id);
   
-  int distance = find_distance(hospitals.at(e.hospital_id.value()).location, ambulances.at(e.ambulance_id.value()).station_location);
+  int distance = find_distance(hospitals.at(e.hospital_id.value()).x, hospitals.at(e.hospital_id.value()).y, ambulances.at(e.ambulance_id.value()).station_x, ambulances.at(e.ambulance_id.value()).station_y);
   int time_to_station = distance / 10;
 
   Event back_at_station = {
@@ -122,8 +123,9 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
     e.hospital_id
   };
 
-  ambulances.at(e.ambulance_id.value()).current_location = hospitals.at(e.hospital_id.value()).location;
-  db.update_ambulance_location(hospitals.at(e.hospital_id.value()).location.lat, hospitals.at(e.hospital_id.value()).location.lon, e.ambulance_id.value());
+  ambulances.at(e.ambulance_id.value()).current_x = hospitals.at(e.hospital_id.value()).x;
+  ambulances.at(e.ambulance_id.value()).current_y = hospitals.at(e.hospital_id.value()).y;
+  db.update_ambulance_location(hospitals.at(e.hospital_id.value()).x, hospitals.at(e.hospital_id.value()).y, e.ambulance_id.value());
   
   hospitals[e.hospital_id.value()].num_patients++;
   db.update_hospital(hospitals[e.hospital_id.value()].num_patients, e.hospital_id.value());
@@ -137,7 +139,8 @@ std::vector<Event> handle_ambulance_back_at_station(
   Postgres &db
 ) 
 {
-  ambulances[e.ambulance_id.value()].current_location = ambulances[e.ambulance_id.value()].station_location;
+  ambulances[e.ambulance_id.value()].current_x = ambulances[e.ambulance_id.value()].station_x;
+  ambulances[e.ambulance_id.value()].current_y = ambulances[e.ambulance_id.value()].station_y;
   ambulances[e.ambulance_id.value()].ambulance_status = AmbulanceStatus::Available;
   
   db.update_ambulance_status("Available", e.ambulance_id.value());

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "helper.hpp"
-
 enum class AmbulanceStatus {
   Available,
   Transporting
@@ -17,6 +15,8 @@ struct Ambulance {
   int simulation_id;
   AmbulanceStatus ambulance_status;
   AmbulanceType ambulance_type;
-  Location station_location;
-  Location current_location;
+  int station_x;
+  int station_y;
+  int current_x;
+  int current_y;
 };

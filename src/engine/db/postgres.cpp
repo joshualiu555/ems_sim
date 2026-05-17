@@ -76,37 +76,37 @@ void Postgres::run_migrations(const std::string &dir) {
 
 int Postgres::insert_hospital(const Hospital &h) {
   return return_execute_params(
-    "INSERT INTO hospitals (simulation_id, num_patients, capacity, lat, lon) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+    "INSERT INTO hospitals (simulation_id, num_patients, capacity, x, y) VALUES ($1, $2, $3, $4, $5) RETURNING id",
     h.simulation_id, 
     h.num_patients, 
     h.capacity, 
-    h.location.lat, 
-    h.location.lon
+    h.x, 
+    h.y
   );
 }
 
 int Postgres::insert_ambulance(const Ambulance &a) {
   return return_execute_params(
-    "INSERT INTO ambulances (simulation_id, status, type, station_lat, station_lon, current_lat, current_lon) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+    "INSERT INTO ambulances (simulation_id, status, type, station_x, station_y, current_x, current_y) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
     a.simulation_id, 
     to_string(a.ambulance_status), 
     to_string(a.ambulance_type), 
-    a.station_location.lat, 
-    a.station_location.lon, 
-    a.station_location.lat, 
-    a.station_location.lon
+    a.station_x, 
+    a.station_y, 
+    a.station_x, 
+    a.station_y
   );
 }
 
 int Postgres::insert_call(const Call &c) {
   return return_execute_params(
-    "INSERT INTO calls (simulation_id, call_time, priority, description, lat, lon) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+    "INSERT INTO calls (simulation_id, call_time, priority, description, x, y) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
     c.simulation_id, 
     c.time, 
     to_string(c.priority), 
     c.description, 
-    c.location.lat, 
-    c.location.lon
+    c.x, 
+    c.y
   );
 }
 
@@ -129,6 +129,14 @@ void Postgres::insert_event(const Event &e) {
     e.call_id,
     e.ambulance_id,
     e.hospital_id
+  );
+}
+
+void Postgres::insert_map(int simulation_id, const std::string &layout) {
+  execute_params(
+    "INSERT INTO maps (simulation_id, layout) VALUES ($1, $2);",
+    simulation_id,
+    layout
   );
 }
 
@@ -158,15 +166,15 @@ void Postgres::update_ambulance_status(std::string status, int id) {
   );
 }
 
-void Postgres::update_ambulance_location(int lat, int lon, int id) {
+void Postgres::update_ambulance_location(int x, int y, int id) {
   execute_params(
     R"(
       UPDATE ambulances
-      SET current_lat = $1, current_lon = $2
+      SET current_x = $1, current_y = $2
       WHERE id = $3
     )",
-    lat,
-    lon,
+    x,
+    y,
     id
   );
 }

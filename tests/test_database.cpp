@@ -25,9 +25,9 @@ class DatabaseTest:public::testing::Test {
 };
 
 TEST_F(DatabaseTest, Insert) {
-  Call c = {1, simulation_id, 0, CallPriority::Alpha, "", {0, 0}};
-  Ambulance a = {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::ALS, {0, 0}, {0, 0}};
-  Hospital h = {1, simulation_id, 0, 10, {0, 0}};
+  Call c = {1, simulation_id, 0, CallPriority::Alpha, "", 0, 0};
+  Ambulance a = {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::ALS, 0, 0, 0, 0};
+  Hospital h = {1, simulation_id, 0, 10, 0, 0};
 
   EXPECT_NO_THROW({
     db -> insert_call(c);
@@ -37,8 +37,8 @@ TEST_F(DatabaseTest, Insert) {
 }
 
 TEST_F(DatabaseTest, Update) {
-  Ambulance a = {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::ALS, {0, 0}, {0, 0}};
-  Hospital h = {1, simulation_id, 0, 10, {0, 0}};
+  Ambulance a = {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::ALS, 0, 0, 0, 0};
+  Hospital h = {1, simulation_id, 0, 10, 0, 0};
   db -> insert_ambulance(a);
   db->insert_hospital(h);
 

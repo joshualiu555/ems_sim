@@ -67,7 +67,7 @@ Ambulance find_closest_ambulance(const Call &c, const std::vector<Ambulance> &av
   Ambulance closest_ambulance = available_ambulances[0];
   double min_distance = std::numeric_limits<double>::max();
   for (Ambulance a : available_ambulances) {
-    int d = find_distance(a.current_location, c.location);
+    int d = find_distance(a.current_x, a.current_y, c.x, c.y);
     if (d < min_distance) {
       closest_ambulance = a;
       min_distance = d;
@@ -80,7 +80,7 @@ Hospital find_closest_hospital(const Call &c, const std::vector<Hospital> &avail
   Hospital closest_hospital = available_hospitals[0];
   double min_distance = std::numeric_limits<double>::max();
   for (Hospital h : available_hospitals) {
-    int d = find_distance(h.location, c.location);
+    int d = find_distance(h.x, h.y, c.x, c.y);
     if (d < min_distance) {
       closest_hospital = h;
       min_distance = d;

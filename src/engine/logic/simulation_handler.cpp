@@ -12,7 +12,7 @@ SimulationHandler::SimulationHandler(
 int SimulationHandler::add_simulation() {
   int id = db.create_simulation();
   simulations[id] = std::make_unique<Simulation>(id, db);
-  simulations[id] -> init(5, 5);
+  simulations[id] -> init(30, 30, 5, 5);
   return id;
 }
 

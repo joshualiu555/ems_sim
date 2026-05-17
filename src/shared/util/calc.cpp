@@ -1,7 +1,5 @@
 #include <cmath>
 
-#include "models/helper.hpp"
-
-double find_distance(const Location a, const Location b) {
-  return std::sqrt((a.lat - b.lat) * (a.lat - b.lat) + (a.lon - b.lon) * (a.lon - b.lon));
+double find_distance(const int a_x, const int a_y, const int b_x, const int b_y) {
+  return std::sqrt((a_x - b_x) * (a_x - b_x) + (a_y - b_y) * (a_y - b_y));
 }
