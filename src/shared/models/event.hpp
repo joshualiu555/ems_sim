@@ -8,7 +8,9 @@ enum class EventType {
   TransportStart,
   AmbulanceArriveAtHospital,
   AmbulanceBackAtStation,
-  PatientDischarged
+  PatientDischarged,
+
+  AmbulanceMove
 };
 
 struct Event {
@@ -20,6 +22,9 @@ struct Event {
   int call_id;
   std::optional<int> ambulance_id; 
   std::optional<int> hospital_id;
+
+  std::optional<int> x;
+  std::optional<int> y;  
 
   bool operator < (const Event& e) const {
     return e.time < time;

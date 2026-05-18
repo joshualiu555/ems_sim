@@ -1,8 +1,14 @@
 #pragma once
 
+#include <vector>
+
+#include "models/map.hpp"
+
 enum class AmbulanceStatus {
   Available,
-  Transporting
+  Responding,
+  Transporting,
+  Returning
 };
 
 enum class AmbulanceType {
@@ -19,4 +25,6 @@ struct Ambulance {
   int station_y;
   int current_x;
   int current_y;
+
+  std::vector<Cell> path;
 };

@@ -5,6 +5,7 @@ add_library(engine STATIC
     logic/handle_event.cpp
     logic/simulation_handler.cpp
     logic/simulation.cpp
+    logic/map.cpp
 )
 
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

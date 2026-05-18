@@ -1,7 +1,9 @@
 #pragma once
 
-#include <vector> // Changed from optional
+#include <vector> 
 #include <unordered_map>
+
+#include "simulation.hpp"
 
 #include "models/call.hpp"
 #include "models/event.hpp"
@@ -15,6 +17,7 @@ std::vector<Event> handle_call_received(
   const std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   const std::unordered_map<int, Hospital> &hospitals,
+  Map &map,
   Postgres &db
 );
 std::vector<Event> handle_ambulance_arrive_at_scene(
@@ -28,6 +31,7 @@ std::vector<Event> handle_transport_start(
   const std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   const std::unordered_map<int, Hospital> &hospitals,
+  Map &map,
   Postgres &db
 );
 std::vector<Event> handle_ambulance_arrive_at_hospital(
@@ -35,6 +39,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   const std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
+  Map &map,
   Postgres &db
 );
 std::vector<Event> handle_ambulance_back_at_station(
@@ -44,6 +49,13 @@ std::vector<Event> handle_ambulance_back_at_station(
 );
 std::vector<Event> handle_patient_discharged(
   const Event &e, 
+  std::unordered_map<int, Hospital> &hospitals,
+  Postgres &db
+);
+std::vector<Event> handle_ambulance_move(
+  const Event &e, 
+  std::unordered_map<int, Call> &calls,
+  std::unordered_map<int, Ambulance> &ambulances,
   std::unordered_map<int, Hospital> &hospitals,
   Postgres &db
 );

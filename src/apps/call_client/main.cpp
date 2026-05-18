@@ -15,7 +15,7 @@ using asio::ip::tcp;
 using json = nlohmann::json;
 
 int main() {
-  Bounds b = {-30, 30, -30, 30};
+  Bounds b = {0, 29, 0, 29};
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> time_dist(1, 7); 

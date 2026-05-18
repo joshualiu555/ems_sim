@@ -54,9 +54,11 @@ std::ostream &operator<<(std::ostream &os, const Event &e) {
     case EventType::AmbulanceArriveAtHospital:
       return os << "In simulation " << e.simulation_id << ", arrived at hospital " << e.hospital_id.value() << " at time " << e.time;
     case EventType::AmbulanceBackAtStation:
-      return os << "In simulation " << e.simulation_id << ", arrived back at station " << e.hospital_id.value() << " at time " << e.time;
+      return os << "In simulation " << e.simulation_id << ", arrived back at station " << e.ambulance_id.value() << " at time " << e.time;
     case EventType::PatientDischarged:
       return os << "In simulation " << e.simulation_id << ", patient discharged from hospital " << e.hospital_id.value() << " at time " << e.time;
+    case EventType::AmbulanceMove:
+      return os << "In simulation " << e.simulation_id << ", ambulance " << e.ambulance_id.value() << " moved to (" << e.x.value() << ", " << e.y.value() << ") at time " << e.time;
     default:
       return os << "Unknown"; 
   }

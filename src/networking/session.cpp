@@ -65,30 +65,26 @@ void Session::read() {
         }
 
         if (request.contains("simulation_id")) {
-          int simulation_id =
-            request.at("simulation_id");
+          int simulation_id = request.at("simulation_id");
+            Simulation* simulation = simulation_handler.get_simulation(simulation_id);
 
-          Simulation* sim =
-            simulation_handler.get_simulation(simulation_id);
+            if (simulation == nullptr) {
+              response["error"] = "Simulation not found";
+            } else {
+              Call c;
+              c.id = request.at("id");
+              c.priority = request.at("priority");
+              c.time = simulation -> current_time;
+              
+              Cell location = simulation -> get_random_road_cell();
+              c.x = location.x;
+              c.y = location.y;
 
-          if (sim == nullptr) {
-            response["error"] =
-              "Simulation not found";
-          } else {
-            Call c;
+              simulation -> add_call(c);
 
-            c.id = request.at("id");
-            c.priority = request.at("priority");
-            c.time = sim -> current_time;
-
-            c.x = request.at("x");
-            c.y = request.at("y");
-
-            sim -> add_call(c);
-
-            response["call_id"] = c.id;
-            response["status"] = "Call added";
-          }
+              response["call_id"] = c.id;
+              response["status"] = "Call added";
+            }
 
           write(response.dump() + "\n");
           return;
