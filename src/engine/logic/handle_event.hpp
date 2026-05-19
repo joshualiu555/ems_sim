@@ -34,7 +34,7 @@ std::vector<Event> handle_call_received(
 
 std::vector<Event> handle_ambulance_arrive_at_scene(
   const Event &e, 
-  const std::unordered_map<int, Call> &calls,
+  std::unordered_map<int, Call> &calls,
   std::unordered_map<int, Ambulance> &ambulances, 
   Postgres &db
 );

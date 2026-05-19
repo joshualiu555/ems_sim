@@ -1,7 +1,16 @@
 # ems_sim
 
 ## Features
-- Allow for manual input of hospitals, ambulances, roads, calls AND random generation
-- Allow for replay, analytics, save progress - Delete automatic TRUNCATE
+- Ambulance doesn't immediately save patient, but doubles the time they have remaining
+
+- Manual input
+
+- Speed control
+- Play / Pause
+- Replay
+
+- Save start state
+
+- Analytics
 
 ## Refactoring

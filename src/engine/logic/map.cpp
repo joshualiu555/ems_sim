@@ -56,9 +56,6 @@ void Map::draw_road(Cell a, Cell b) {
 }
 
 void Map::create_main_roads() {
-  // if there are 0 or 1 medical_cells, nothing can connect
-  if (medical_cells.size() < 2) return;
-
   std::vector<Cell> connected;
   std::vector<Cell> unconnected = medical_cells;
 

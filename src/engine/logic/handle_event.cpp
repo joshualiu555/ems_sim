@@ -82,11 +82,21 @@ std::vector<Event> handle_call_received(
   // time to live (literally)
   int ttl;
   switch (call.priority) {
-    case CallPriority::Alpha:   ttl = 15; break;
-    case CallPriority::Bravo:   ttl = 13; break;
-    case CallPriority::Charlie: ttl = 10; break;
-    case CallPriority::Delta:   ttl = 7;  break;
-    case CallPriority::Echo:    ttl = 3;  break;
+    case CallPriority::Alpha:   
+      ttl = 15; 
+      break;
+    case CallPriority::Bravo:   
+      ttl = 13; 
+      break;
+    case CallPriority::Charlie: 
+      ttl = 10; 
+      break;
+    case CallPriority::Delta:   
+      ttl = 7;  
+      break;
+    case CallPriority::Echo:    
+      ttl = 3;  
+      break;
   }
 
   call.expiration_time = e.time + ttl;
@@ -115,14 +125,30 @@ std::vector<Event> handle_call_received(
 
 std::vector<Event> handle_ambulance_arrive_at_scene(
   const Event &e, 
-  const std::unordered_map<int, Call> &calls,
+  std::unordered_map<int, Call> &calls,
   std::unordered_map<int, Ambulance> &ambulances, 
   Postgres &db
 ) 
 {
-  const Call &call = calls.at(e.call_id);
-  int time_elapsed = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 5 : 10;
+  Call &call = calls.at(e.call_id);
 
+  int remaining_time = call.expiration_time - e.time;
+  int new_expiration_time = e.time + (remaining_time * 2);
+  
+  call.expiration_time = new_expiration_time;
+
+  Event expiration = {
+    e.simulation_id,
+    new_expiration_time,
+    EventType::CallExpired,
+    e.call_id,
+    std::nullopt, 
+    std::nullopt, 
+    std::nullopt, 
+    std::nullopt 
+  };
+
+  int time_elapsed = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 5 : 10;
   Event next = {
     e.simulation_id,
     e.time + time_elapsed,
@@ -138,7 +164,7 @@ std::vector<Event> handle_ambulance_arrive_at_scene(
   ambulances[e.ambulance_id.value()].current_y = call.y;
   db.update_ambulance_location(call.x, call.y, e.ambulance_id.value());
 
-  return {next};
+  return {next, expiration};
 }
 
 std::vector<Event> handle_transport_start(
@@ -150,6 +176,11 @@ std::vector<Event> handle_transport_start(
   Postgres &db
 ) 
 {
+  Call &call = calls.at(e.call_id);
+  if (call.status == CallStatus::Expired) {
+    return {};
+  }
+
   int ambulance_id = e.ambulance_id.value();
   int hospital_id = e.hospital_id.value();
   Ambulance &ambulance = ambulances[ambulance_id];
@@ -306,6 +337,10 @@ std::vector<Event> handle_call_expired(
   Postgres &db
 ) {
   Call &call = calls.at(e.call_id);
+
+  if (e.time < call.expiration_time) {
+    return {};
+  }
 
   // patient was saved or died
   if (call.status == CallStatus::Completed || call.status == CallStatus::Transporting || call.status == CallStatus::Expired) {
