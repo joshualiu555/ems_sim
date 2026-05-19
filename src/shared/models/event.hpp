@@ -9,8 +9,8 @@ enum class EventType {
   AmbulanceArriveAtHospital,
   AmbulanceBackAtStation,
   PatientDischarged,
-
-  AmbulanceMove
+  AmbulanceMove,
+  CallExpired
 };
 
 struct Event {

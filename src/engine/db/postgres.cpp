@@ -100,11 +100,10 @@ int Postgres::insert_ambulance(const Ambulance &a) {
 
 int Postgres::insert_call(const Call &c) {
   return return_execute_params(
-    "INSERT INTO calls (simulation_id, call_time, priority, description, x, y) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+    "INSERT INTO calls (simulation_id, call_time, priority, x, y) VALUES ($1, $2, $3, $4, $5) RETURNING id",
     c.simulation_id, 
     c.time, 
     to_string(c.priority), 
-    c.description, 
     c.x, 
     c.y
   );
@@ -141,6 +140,18 @@ void Postgres::insert_map(int simulation_id, const std::string &layout) {
 }
 
 // don't need simulation_id as parameter because those id's are serial (unique)
+
+void Postgres::update_call_status(const std::string &status, int id) {
+  execute_params(
+    R"(
+      UPDATE calls
+      SET status = $1
+      WHERE id = $2
+    )",
+    status,
+    id
+  );
+}
 
 void Postgres::update_hospital(int num_patients, int id) {
   execute_params(

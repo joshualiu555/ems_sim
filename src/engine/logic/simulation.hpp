@@ -39,7 +39,9 @@ class Simulation {
 
     Postgres &db;
 
-    std::priority_queue<Event> pq;
+
+    std::priority_queue<Event> event_pq;
+    std::priority_queue<Call, std::vector<Call>, std::greater<Call>> calls_pq;
 
     std::unique_ptr<Map> map;
 

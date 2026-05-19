@@ -25,7 +25,7 @@ class DatabaseTest:public::testing::Test {
 };
 
 TEST_F(DatabaseTest, Insert) {
-  Call c = {1, simulation_id, 0, CallPriority::Alpha, "", 0, 0};
+  Call c = {1, simulation_id, 0, CallPriority::Alpha, CallStatus::Pending, 0, 0};
   Ambulance a = {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::ALS, 0, 0, 0, 0};
   Hospital h = {1, simulation_id, 0, 10, 0, 0};
 

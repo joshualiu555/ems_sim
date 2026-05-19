@@ -18,7 +18,7 @@ int main() {
   Bounds b = {0, 29, 0, 29};
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> time_dist(1, 7); 
+  std::uniform_int_distribution<> time_dist(0, 7); 
 
   asio::io_context io_context;
   tcp::socket socket(io_context);

@@ -16,7 +16,7 @@ class DispatchTest:public::testing::Test {
     int simulation_id = 1;
 
     void SetUp() override {
-      call = {1, simulation_id, 0, CallPriority::Alpha, "", 0, 0};
+      call = {1, simulation_id, 0, CallPriority::Alpha, CallStatus::Pending, 0, 0};
 
       ambulances = {
         {1, {1, simulation_id, AmbulanceStatus::Available, AmbulanceType::BLS, 0, 0, 0, 0}}

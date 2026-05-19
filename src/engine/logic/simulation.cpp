@@ -89,34 +89,36 @@ void Simulation::add_call(Call &c) {
     std::nullopt
   };
 
-  pq.push(e);
+  event_pq.push(e);
 }
 
 std::vector<Event> Simulation::create_next_event(const Event &e) {
   switch(e.event_type) {
     case EventType::CallReceived:
-      return handle_call_received(e, calls, ambulances, hospitals, *map, db);
+      return handle_call_received(e, calls, ambulances, hospitals, calls_pq, *map, db);
     case EventType::AmbulanceArriveAtScene:
       return handle_ambulance_arrive_at_scene(e, calls, ambulances, db);
     case EventType::TransportStart:
       return handle_transport_start(e, calls, ambulances, hospitals, *map, db);
     case EventType::AmbulanceArriveAtHospital:
-      return handle_ambulance_arrive_at_hospital(e, calls, ambulances, hospitals, *map, db);
+      return handle_ambulance_arrive_at_hospital(e, calls, ambulances, hospitals, calls_pq, *map, db);
     case EventType::AmbulanceBackAtStation:
-      return handle_ambulance_back_at_station(e, ambulances, db);
+      return handle_ambulance_back_at_station();
     case EventType::PatientDischarged:
       return handle_patient_discharged(e, hospitals, db);
     case EventType::AmbulanceMove:
       return handle_ambulance_move(e, calls, ambulances, hospitals, db);
+    case EventType::CallExpired:
+      return handle_call_expired(e, calls, ambulances, hospitals, calls_pq, *map, db);
     default:
       return {}; 
   }
 }
 
 void Simulation::run(int current_time) {
-  while (!pq.empty() && pq.top().time <= current_time) {
-    Event e = pq.top();
-    pq.pop();
+  while (!event_pq.empty() && event_pq.top().time <= current_time) {
+    Event e = event_pq.top();
+    event_pq.pop();
     
     std::cout << e << '\n';
     db.insert_event(e);
@@ -124,7 +126,7 @@ void Simulation::run(int current_time) {
     std::vector<Event> next_events = create_next_event(e);
     
     for (const Event& next : next_events) {
-      pq.push(next);
+      event_pq.push(next);
     } 
   }
 }
