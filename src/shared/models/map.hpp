@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 enum class CellType {
   Empty,
   Road,
