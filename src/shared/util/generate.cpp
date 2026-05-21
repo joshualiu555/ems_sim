@@ -13,11 +13,14 @@
 #include "calc.hpp"
 
 Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen, int simulation_id) {
+  std::uniform_int_distribution<int> ambulance_type(1, 3);
   std::uniform_int_distribution<int> x(b.x_min, b.x_max);
   std::uniform_int_distribution<int> y(b.y_min, b.y_max);
 
   AmbulanceStatus as = AmbulanceStatus::Available;
-  AmbulanceType at = (gen() % 2 == 0) ? AmbulanceType::ALS : AmbulanceType::BLS;
+
+  int ambulance_type_range = ambulance_type(gen);
+  AmbulanceType at = (ambulance_type_range == 1) ? AmbulanceType::BLS : AmbulanceType::ALS;
 
   Ambulance a = {
     0, // dummy id that will later be replaced by the database, the source of truth
@@ -53,7 +56,7 @@ Hospital generate_hospital(const Bounds &b, std::mt19937 &gen, int simulation_id
 }
 
 Call generate_call(const Bounds &b, std::mt19937 &gen, int simulation_id) {
-  std::uniform_int_distribution<int> priority(1, 5);
+  std::uniform_int_distribution<int> priority(1, 15);
   std::uniform_int_distribution<int> x(b.x_min, b.x_max);
   std::uniform_int_distribution<int> y(b.y_min, b.y_max);
 
@@ -64,24 +67,16 @@ Call generate_call(const Bounds &b, std::mt19937 &gen, int simulation_id) {
   std::string d = "";
 
   int p = priority(gen);
-  switch(p) {
-    case 1:
-      c.priority = CallPriority::Echo;
-      break;
-    case 2:
-      c.priority = CallPriority::Delta;
-      break;
-    case 3:
-      c.priority = CallPriority::Charlie;
-      break;
-    case 4:
-      c.priority = CallPriority::Bravo;
-      break;
-    case 5:
-      c.priority = CallPriority::Alpha;
-      break;
-    default:
-        break;
+  if (p == 1) {
+    c.priority = CallPriority::Echo;
+  } else if (p == 2 || p == 3) {
+    c.priority = CallPriority::Delta;
+  } else if (p >= 4 && p <= 6) {
+    c.priority = CallPriority::Charlie;
+  } else if (p >= 7 && p <= 10) {
+    c.priority = CallPriority::Bravo;
+  } else {
+    c.priority = CallPriority::Alpha;
   }
 
   c.x = x(gen);

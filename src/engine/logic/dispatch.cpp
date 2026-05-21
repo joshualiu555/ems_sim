@@ -40,7 +40,7 @@ std::optional<Dispatch> create_dispatch(
 
 std::vector<Ambulance> find_available_ambulances(const Call &c, const std::unordered_map<int, Ambulance> &all_ambulances) {
   std::vector<Ambulance> available_ambulances; 
-  for (const auto& [id, a] : all_ambulances) {
+  for (const auto &[id, a] : all_ambulances) {
     if (a.ambulance_status == AmbulanceStatus::Available) {
       if (a.ambulance_type == AmbulanceType::ALS ||
         (a.ambulance_type == AmbulanceType::BLS &&
@@ -55,7 +55,7 @@ std::vector<Ambulance> find_available_ambulances(const Call &c, const std::unord
 
 std::vector<Hospital> find_available_hospitals(const std::unordered_map<int, Hospital> &all_hospitals) {
   std::vector<Hospital> available_hospitals; 
-  for (const auto& [id, h] : all_hospitals) {
+  for (const auto &[id, h] : all_hospitals) {
     if (h.num_patients < h.capacity) {
       available_hospitals.push_back(h);
     }
@@ -66,7 +66,7 @@ std::vector<Hospital> find_available_hospitals(const std::unordered_map<int, Hos
 Ambulance find_closest_ambulance(const Call &c, const std::vector<Ambulance> &available_ambulances) {
   Ambulance closest_ambulance = available_ambulances[0];
   double min_distance = std::numeric_limits<double>::max();
-  for (Ambulance a : available_ambulances) {
+  for (const Ambulance &a : available_ambulances) {
     int d = find_distance(a.current_x, a.current_y, c.x, c.y);
     if (d < min_distance) {
       closest_ambulance = a;
@@ -79,7 +79,7 @@ Ambulance find_closest_ambulance(const Call &c, const std::vector<Ambulance> &av
 Hospital find_closest_hospital(const Call &c, const std::vector<Hospital> &available_hospitals) {
   Hospital closest_hospital = available_hospitals[0];
   double min_distance = std::numeric_limits<double>::max();
-  for (Hospital h : available_hospitals) {
+  for (const Hospital &h : available_hospitals) {
     int d = find_distance(h.x, h.y, c.x, c.y);
     if (d < min_distance) {
       closest_hospital = h;

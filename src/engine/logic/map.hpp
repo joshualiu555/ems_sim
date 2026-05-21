@@ -19,7 +19,6 @@ class Map {
     void create_main_roads();
     // one-off roads
     void create_side_roads(double branch_chance, int min_length, int max_length, std::mt19937 &gen);
-    void print_map();
 
     std::string serialize();
     void deserialize(const std::string &layout);

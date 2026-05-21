@@ -17,7 +17,7 @@
 #include "db/config.hpp"
 #include "db/postgres.hpp"
 
-class HandleEventTest : public ::testing::Test {
+class HandleEventTest:public ::testing::Test {
   protected:
     int simulation_id = 1;
     std::unique_ptr<Postgres> db;
@@ -26,6 +26,7 @@ class HandleEventTest : public ::testing::Test {
     std::unordered_map<int, Hospital> hospitals;
     std::unique_ptr<Map> map; 
     std::unordered_set<int> pending_call_ids;
+    std::unordered_set<int> expired_call_ids;
     std::priority_queue<Call, std::vector<Call>, std::greater<Call>> calls_pq;
 
     void SetUp() override {
@@ -112,7 +113,7 @@ TEST_F(HandleEventTest, AmbulanceArriveAtSceneToTransportStart) {
 
   ASSERT_FALSE(next_events.empty());
   EXPECT_EQ(next_events[0].event_type, EventType::TransportStart);
-  EXPECT_EQ(next_events[0].time, 5); // 5 for Alpha priority
+  EXPECT_EQ(next_events[0].time, 2); // 2 for Alpha priority
 }
 
 TEST_F(HandleEventTest, TransportStartToAmbulanceMove) {
@@ -202,7 +203,7 @@ TEST_F(HandleEventTest, CallExpiredPatientSaved) {
     std::nullopt, std::nullopt, std::nullopt, std::nullopt  
   };
 
-  std::vector<Event> next_events = handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, *map, *db);
+  std::vector<Event> next_events = handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, expired_call_ids, *map, *db);
 
   EXPECT_TRUE(next_events.empty());
   EXPECT_EQ(calls[1].status, CallStatus::Completed); 
@@ -218,8 +219,7 @@ TEST_F(HandleEventTest, CalledExpiredPatientDiedThenNewDispatch) {
   
   init_db(AmbulanceStatus::Available); 
 
-  Call c2 = {2, simulation_id, 0, CallPriority::Alpha, CallStatus::Pending, 0, 3, 15, std::nullopt};
-  calls[2] = c2;
+  Call c2 = {2, simulation_id, 0, CallPriority::Alpha, CallStatus::Pending, 0, 3, 0, std::nullopt};  calls[2] = c2;
   calls_pq.push(c2);
 
   db -> execute_params(
@@ -235,7 +235,7 @@ TEST_F(HandleEventTest, CalledExpiredPatientDiedThenNewDispatch) {
     std::nullopt, std::nullopt, std::nullopt, std::nullopt  
   };
 
-  std::vector<Event> next_events = handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, *map, *db);
+  std::vector<Event> next_events = handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, expired_call_ids, *map, *db);
 
   EXPECT_EQ(calls[1].status, CallStatus::Expired);
   ASSERT_FALSE(next_events.empty());
@@ -243,4 +243,6 @@ TEST_F(HandleEventTest, CalledExpiredPatientDiedThenNewDispatch) {
   EXPECT_EQ(next_events[0].call_id, 2); 
   EXPECT_EQ(ambulances[1].ambulance_status, AmbulanceStatus::Responding);
   EXPECT_EQ(calls[2].status, CallStatus::Dispatched);
+  ASSERT_FALSE(expired_call_ids.empty());
+  EXPECT_EQ(*expired_call_ids.begin(), 1);
 }

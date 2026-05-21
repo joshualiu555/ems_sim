@@ -6,15 +6,12 @@ enum class CellType {
   Hospital,
   Station,
   Ambulance,
-  Call
+  Call,
+  ExpiredCall
 };
 
 struct Cell {
   int x;
   int y;
   CellType cell_type;
-
-  bool operator == (const Cell &c) const {
-    return x == c.x && y == c.y;
-  }
 };

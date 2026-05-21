@@ -2,6 +2,8 @@
 #include "dispatch.hpp"
 #include "util/calc.hpp"
 
+#include <iostream>
+
 // called whenever a state makes a new dispatch possible
 std::vector<Event> process_calls
 (
@@ -14,7 +16,7 @@ std::vector<Event> process_calls
   Map &map,
   Postgres &db
 ) 
-{
+{  
   std::vector<Event> next_events;
   std::vector<Call> still_waiting;
 
@@ -32,7 +34,7 @@ std::vector<Event> process_calls
     std::optional<Dispatch> dispatch = create_dispatch(actual_call, ambulances, hospitals);
     if (!dispatch) {
       still_waiting.push_back(old_call);
-      break; 
+      continue; 
     }
 
     db.insert_dispatch(*dispatch);
@@ -150,7 +152,7 @@ std::vector<Event> handle_ambulance_arrive_at_scene(
     std::nullopt 
   };
 
-  int time_elapsed = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 5 : 10;
+  int time_elapsed = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 2 : 5;
   Event next = {
     e.simulation_id,
     e.time + time_elapsed,
@@ -336,40 +338,45 @@ std::vector<Event> handle_call_expired(
   std::unordered_map<int, Hospital> &hospitals,
   std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
   std::unordered_set<int> &pending_call_ids,
+  std::unordered_set<int> &expired_call_ids,
   Map &map,
   Postgres &db
 ) {
   Call &call = calls.at(e.call_id);
-
   if (e.time < call.expiration_time) {
     return {};
   }
-
-  // patient was saved or died
   if (call.status == CallStatus::Completed || call.status == CallStatus::Transporting || call.status == CallStatus::Expired) {
     return {}; 
   }
-
   call.status = CallStatus::Expired;
   db.update_call_status("Expired", call.id); 
   pending_call_ids.erase(call.id);
+  expired_call_ids.insert(call.id);
 
-  // if an ambulance was driving to them, redirect it
   if (call.ambulance_id.has_value()) {
     Ambulance &ambulance = ambulances[call.ambulance_id.value()];
     
     if (ambulance.ambulance_status == AmbulanceStatus::Responding) {
-      // cancel the response
       ambulance.ambulance_status = AmbulanceStatus::Available;
       db.update_ambulance_status("Available", ambulance.id);
+      ambulance.path.clear(); // <-- clear only, no station path yet
 
-      // send them back to station
-      ambulance.path.clear();
+      std::vector<Event> dispatch_events = process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, pending_calls, map, db);
+      if (!dispatch_events.empty()) {
+        return dispatch_events;
+      }
+
+      // no new call so return back to station
       Cell start = {ambulance.current_x, ambulance.current_y, CellType::Road};
       Cell end = {ambulance.station_x, ambulance.station_y, CellType::Station};
       ambulance.path = map.find_path(start, end);
 
-      return process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, pending_calls, map, db);
+      if (ambulance.path.empty()) {
+        return {{e.simulation_id, e.time + 1, EventType::AmbulanceBackAtStation, e.call_id, ambulance.id, std::nullopt, std::nullopt, std::nullopt}};
+      } else {
+        return {{e.simulation_id, e.time + 1, EventType::AmbulanceMove, e.call_id, ambulance.id, std::nullopt, ambulance.path.front().x, ambulance.path.front().y}};
+      }
     }
   }
 

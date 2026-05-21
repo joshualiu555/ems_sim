@@ -83,6 +83,7 @@ std::vector<Event> handle_call_expired(
   std::unordered_map<int, Hospital> &hospitals,
   std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
   std::unordered_set<int> &pending_call_ids,
+  std::unordered_set<int> &expired_call_ids,
   Map &map,
   Postgres &db
 );

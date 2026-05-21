@@ -90,14 +90,6 @@ void Session::read() {
           
           json response;
           response["simulation"] = json::array(); 
-
-          if (simulation == nullptr) {
-            fprintf(stderr, "get_simulation: simulation %d not found\n", simulation_id);
-            json response;
-            response["error"] = "simulation not found";
-            write(response.dump() + '\n');
-            return;
-          } 
           
           for (const Cell &c : simulation -> get_current_map()) {
             response["simulation"].push_back({

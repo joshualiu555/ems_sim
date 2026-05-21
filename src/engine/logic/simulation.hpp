@@ -34,6 +34,7 @@ class Simulation {
 
     std::vector<Cell> get_current_map();
     std::unordered_set<int> get_pending_call_ids();
+    std::unordered_set<int> get_expired_call_ids();
     std::unordered_map<int, Ambulance> get_ambulances();
     std::vector<Cell> get_static_map();
 
@@ -42,6 +43,7 @@ class Simulation {
 
     std::unordered_map<int, Call> calls;
     std::unordered_set<int> pending_call_ids;
+    std::unordered_set<int> expired_call_ids;
     std::unordered_map<int, Ambulance> ambulances;
     std::unordered_map<int, Hospital> hospitals;
 

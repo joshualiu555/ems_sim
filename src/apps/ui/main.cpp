@@ -312,6 +312,8 @@ int main(int, char**)
                                     cell_color = IM_COL32(0, 255, 0, 255); // green
                                 } else if (cell.cell_type == CellType::Station) {
                                     cell_color = IM_COL32(255, 255, 0, 255); // yellow
+                                } else if (cell.cell_type == CellType::ExpiredCall) {
+                                    cell_color = IM_COL32(0, 0, 0, 255); // black
                                 }
                                 break;
                             }

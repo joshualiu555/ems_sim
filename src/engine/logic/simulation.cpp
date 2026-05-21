@@ -69,8 +69,6 @@ void Simulation::init(int width, int height, int num_ambulances, int num_hospita
   db.insert_map(this -> id, layout);
 
   map -> get_all_roads();
-
-  map -> print_map();
 }
 
 void Simulation::add_call(Call &c) {
@@ -110,7 +108,7 @@ std::vector<Event> Simulation::create_next_event(const Event &e) {
     case EventType::AmbulanceMove:
       return handle_ambulance_move(e, calls, ambulances, hospitals, db);
     case EventType::CallExpired:
-      return handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, *map, db);
+      return handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, expired_call_ids, *map, db);
     default:
       return {}; 
   }
@@ -121,7 +119,6 @@ void Simulation::run(int current_time) {
     Event e = event_pq.top();
     event_pq.pop();
     
-    std::cout << e << '\n';
     db.insert_event(e);
     
     std::vector<Event> next_events = create_next_event(e);
@@ -157,17 +154,31 @@ std::vector<Cell> Simulation::get_current_map() {
     cell.y = call.y;
     cell.cell_type = CellType::Call;
     cells.push_back(cell);
-    }
+  }
+  for (int call_id : expired_call_ids) {
+    Call call = calls.at(call_id);
+    Cell cell;
+    cell.x = call.x;
+    cell.y = call.y;
+    cell.cell_type = CellType::ExpiredCall;
+    cells.push_back(cell);
+  }
   std::vector<Cell> static_map = map -> get_static_map();
   for (Cell cell : static_map) {
     cells.push_back(cell);
   }
+
+  expired_call_ids.clear();
 
   return cells; 
 }
 
 std::unordered_set<int> Simulation::get_pending_call_ids() {
   return pending_call_ids;
+}
+
+std::unordered_set<int> Simulation::get_expired_call_ids() {
+  return expired_call_ids;
 }
 
 std::unordered_map<int, Ambulance> Simulation::get_ambulances() {

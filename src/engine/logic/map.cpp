@@ -126,18 +126,6 @@ void Map::create_side_roads(double branch_chance, int min_length, int max_length
   }
 }
 
-void Map::print_map() {
-  for (int x = 0; x < width; x++) {
-    for (int y = 0; y < height; y++) {
-      if (map[x][y].cell_type == CellType::Empty) std::cout << '.';
-      else if (map[x][y].cell_type == CellType::Road) std::cout << '#';
-      else if (map[x][y].cell_type == CellType::Hospital) std::cout << 'H';
-      else if (map[x][y].cell_type == CellType::Station) std::cout << 'A';
-    }
-    std::cout << '\n';
-  }
-}
-
 std::string Map::serialize() {
   std::string layout_str;
 
