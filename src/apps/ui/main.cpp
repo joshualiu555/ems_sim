@@ -102,6 +102,13 @@ std::vector<Cell> get_simulation_state(int simulation_id) {
             c.x = cell["x"];
             c.y = cell["y"];
             c.cell_type = static_cast<CellType>(cell["cell_type"].get<int>());
+
+            if (!cell["subtype"].is_null()) {
+                c.subtype = cell["subtype"].get<int>(); 
+            } else {
+                c.subtype = std::nullopt; 
+            }
+
             cells.push_back(c);
         }
     }
@@ -303,11 +310,16 @@ int main(int, char**)
                         for (Cell &cell : cache_cells) {
                             if (cell.x == x && cell.y == y) {
                                 if (cell.cell_type == CellType::Call) {
-                                    cell_color = IM_COL32(255, 0, 0, 255); // red
+                                    if (cell.subtype == 0) cell_color = IM_COL32(255, 204, 204, 255); // alpha
+                                    else if (cell.subtype == 1) cell_color = IM_COL32(255, 102, 102, 255); 
+                                    else if (cell.subtype == 2) cell_color = IM_COL32(255, 0, 0, 255);   
+                                    else if (cell.subtype == 3) cell_color = IM_COL32(204, 0, 0, 255); 
+                                    else if (cell.subtype == 4) cell_color = IM_COL32(153, 0, 0, 255); // echo
                                 } else if (cell.cell_type == CellType::Road) {
                                     cell_color = IM_COL32(128, 128, 128, 255); // gray
                                 } else if (cell.cell_type == CellType::Ambulance) {
-                                    cell_color = IM_COL32(0, 0, 255, 255); // blue
+                                    if (cell.subtype == 0) cell_color = IM_COL32(0, 0, 255, 255); // als
+                                    else if (cell.subtype == 1) cell_color = IM_COL32(173, 216, 230, 255); // bls
                                 } else if (cell.cell_type == CellType::Hospital) {
                                     cell_color = IM_COL32(0, 255, 0, 255); // green
                                 } else if (cell.cell_type == CellType::Station) {
@@ -327,7 +339,7 @@ int main(int, char**)
                     ImVec2 top_left = {offset.x + x1, offset.y + y1};
                     ImVec2 bottom_right = {offset.x + x2, offset.y + y2};
                     
-                    draw_list->AddRectFilled(top_left, bottom_right, cell_color);
+                    draw_list -> AddRectFilled(top_left, bottom_right, cell_color);
                 }
             }
 

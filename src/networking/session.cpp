@@ -95,7 +95,8 @@ void Session::read() {
             response["simulation"].push_back({
               {"x", c.x},
               {"y", c.y},
-              {"cell_type", static_cast<int>(c.cell_type)} 
+              {"cell_type", static_cast<int>(c.cell_type)},
+              {"subtype", c.subtype.has_value() ? json(c.subtype.value()) : json(nullptr)}
             });
           }
 

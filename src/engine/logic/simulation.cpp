@@ -145,6 +145,7 @@ std::vector<Cell> Simulation::get_current_map() {
     c.x = ambulance.current_x;
     c.y = ambulance.current_y;
     c.cell_type = CellType::Ambulance;
+    c.subtype = static_cast<int>(ambulance.ambulance_type);
     cells.push_back(c);
   }
   for (int call_id : pending_call_ids) {    
@@ -153,6 +154,7 @@ std::vector<Cell> Simulation::get_current_map() {
     cell.x = call.x;
     cell.y = call.y;
     cell.cell_type = CellType::Call;
+    cell.subtype = static_cast<int>(call.priority);
     cells.push_back(cell);
   }
   for (int call_id : expired_call_ids) {

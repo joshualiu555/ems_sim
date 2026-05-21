@@ -14,4 +14,5 @@ struct Cell {
   int x;
   int y;
   CellType cell_type;
+  std::optional<int> subtype;
 };
