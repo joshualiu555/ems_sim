@@ -49,45 +49,65 @@ void Session::read() {
         json request = json::parse(line);
         json response;
 
-        if (
-          request.contains("command") &&
-          request["command"] == "create_simulation"
-        ) {
-          int simulation_id =
-            simulation_handler.add_simulation();
+        if (request.contains("create_simulation")) {
+          int simulation_id = simulation_handler.add_simulation();
 
           response["simulation_id"] = simulation_id;
-          response["status"] =
-            "Simulation created and populated!";
+          response["status"] = "Simulation created";
 
-          write(response.dump() + "\n");
+          write(response.dump() + '\n');
           return;
-        }
+        } else if (request.contains("get_all_simulations")) {
+          std::vector<int> ids = simulation_handler.get_all_simulations(); 
 
-        if (request.contains("simulation_id")) {
+          json response;
+          response["simulation_ids"] = ids;
+
+          write(response.dump() + '\n');
+        } else if (request.contains("simulation_id")) {
           int simulation_id = request.at("simulation_id");
-            Simulation* simulation = simulation_handler.get_simulation(simulation_id);
+          Simulation *simulation = simulation_handler.get_simulation(simulation_id);
 
-            if (simulation == nullptr) {
-              response["error"] = "Simulation not found";
-            } else {
-              Call c;
-              c.id = request.at("id");
-              c.priority = request.at("priority");
-              c.time = simulation -> current_time;
-              
-              Cell location = simulation -> get_random_road_cell();
-              c.x = location.x;
-              c.y = location.y;
+          Call c;
+          c.id = request.at("id");
+          c.priority = request.at("priority");
+          c.time = simulation -> current_time;
+          
+          Cell location = simulation -> get_random_road_cell();
+          c.x = location.x;
+          c.y = location.y;
 
-              simulation -> add_call(c);
+          simulation -> add_call(c);
 
-              response["call_id"] = c.id;
-              response["status"] = "Call added";
-            }
+          response["call_id"] = c.id;
+          response["status"] = "Call added";
 
-          write(response.dump() + "\n");
+          write(response.dump() + '\n');
           return;
+        } else if (request.contains("get_simulation")) {
+          int simulation_id = request["get_simulation"];
+          Simulation *simulation = simulation_handler.get_simulation(simulation_id);
+          
+          json response;
+          response["simulation"] = json::array(); 
+
+          if (simulation == nullptr) {
+            fprintf(stderr, "get_simulation: simulation %d not found\n", simulation_id);
+            json response;
+            response["error"] = "simulation not found";
+            write(response.dump() + '\n');
+            return;
+          } 
+          
+          for (const Cell &c : simulation -> get_current_map()) {
+            response["simulation"].push_back({
+              {"x", c.x},
+              {"y", c.y},
+              {"cell_type", static_cast<int>(c.cell_type)} 
+            });
+          }
+
+          write(response.dump() + '\n');
         }
       }
     }

@@ -1,8 +1,6 @@
 # ems_sim
 
 ## Features
-- Ambulance doesn't immediately save patient, but doubles the time they have remaining
-
 - Manual input
 
 - Speed control
@@ -14,3 +12,10 @@
 - Analytics
 
 ## Refactoring
+- Make odds of ALS truck higher
+- Make odds of Alpha higher and Echo lower (same for in between)
+- To do this, generate a number 1 to X and give more range in the if statement for certain assignments
+
+- Show a flash when a call expires
+
+- Add compatability for Linux and Windows - add_simulation(), -framework

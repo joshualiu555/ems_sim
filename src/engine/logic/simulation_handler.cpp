@@ -20,6 +20,10 @@ void SimulationHandler::remove_simulation(int id) {
     simulations.erase(id);
 }
 
+std::vector<int> SimulationHandler::get_all_simulations() {
+  return db.get_all_simulations();
+}
+
 Simulation* SimulationHandler::get_simulation(int id) {
     auto it = simulations.find(id);
     if (it == simulations.end()) {

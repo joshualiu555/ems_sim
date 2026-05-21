@@ -17,18 +17,18 @@ int main() {
   asio::io_context io_context;
   Server server(io_context, 8080, simulation_handler);    
 
-  asio::steady_timer sim_timer(io_context, asio::chrono::seconds(0));
+  asio::steady_timer simulation_timer(io_context, asio::chrono::seconds(0));
   std::function<void(const asio::error_code&)> tick_simulations;
   
   tick_simulations = [&](const asio::error_code& ec) {
     if (!ec) {
       simulation_handler.tick_all_simulations();
       
-      sim_timer.expires_at(sim_timer.expiry() + asio::chrono::seconds(1));
-      sim_timer.async_wait(tick_simulations);
+      simulation_timer.expires_at(simulation_timer.expiry() + asio::chrono::seconds(1));
+      simulation_timer.async_wait(tick_simulations);
     }
   };
-  sim_timer.async_wait(tick_simulations);
+  simulation_timer.async_wait(tick_simulations);
   
   io_context.run(); 
 

@@ -10,7 +10,7 @@ std::vector<Event> process_calls
   std::unordered_map<int, Call> &calls,
   std::unordered_map<int, Ambulance> &ambulances,
   std::unordered_map<int, Hospital> &hospitals,
-  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
+  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &calls_pq,
   Map &map,
   Postgres &db
 ) 
@@ -18,10 +18,10 @@ std::vector<Event> process_calls
   std::vector<Event> next_events;
   std::vector<Call> still_waiting;
 
-  while (!pending_calls.empty()) {
+  while (!calls_pq.empty()) {
     // original state
-    Call old_call = pending_calls.top();
-    pending_calls.pop();
+    Call old_call = calls_pq.top();
+    calls_pq.pop();
 
     // current state
     Call &actual_call = calls.at(old_call.id);
@@ -60,7 +60,7 @@ std::vector<Event> process_calls
   }
 
   for (const auto &sw : still_waiting) {
-    pending_calls.push(sw);
+    calls_pq.push(sw);
   }
 
   return next_events;
@@ -71,7 +71,7 @@ std::vector<Event> handle_call_received(
   std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
-  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
+  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &calls_pq,
   Map &map, 
   Postgres &db
 ) 
@@ -83,25 +83,25 @@ std::vector<Event> handle_call_received(
   int ttl;
   switch (call.priority) {
     case CallPriority::Alpha:   
-      ttl = 15; 
+      ttl = 50; 
       break;
     case CallPriority::Bravo:   
-      ttl = 13; 
+      ttl = 40; 
       break;
     case CallPriority::Charlie: 
-      ttl = 10; 
+      ttl = 30; 
       break;
     case CallPriority::Delta:   
-      ttl = 7;  
+      ttl = 20;  
       break;
     case CallPriority::Echo:    
-      ttl = 3;  
+      ttl = 10;  
       break;
   }
 
   call.expiration_time = e.time + ttl;
 
-  pending_calls.push(call);
+  calls_pq.push(call);
 
   // patient dies
   Event expiration_event = {
@@ -117,7 +117,7 @@ std::vector<Event> handle_call_received(
 
   std::vector<Event> next_events = {expiration_event};
 
-  std::vector<Event> dispatch_events = process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, pending_calls, map, db);
+  std::vector<Event> dispatch_events = process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, calls_pq, map, db);
   next_events.insert(next_events.end(), dispatch_events.begin(), dispatch_events.end());
 
   return next_events;
@@ -126,12 +126,14 @@ std::vector<Event> handle_call_received(
 std::vector<Event> handle_ambulance_arrive_at_scene(
   const Event &e, 
   std::unordered_map<int, Call> &calls,
+  std::unordered_set<int> &pending_call_ids,
   std::unordered_map<int, Ambulance> &ambulances, 
   Postgres &db
 ) 
 {
   Call &call = calls.at(e.call_id);
-
+  pending_call_ids.erase(call.id);
+  
   int remaining_time = call.expiration_time - e.time;
   int new_expiration_time = e.time + (remaining_time * 2);
   
@@ -211,7 +213,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
-  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
+  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &calls_pq,
   Map &map, 
   Postgres &db
 ) 
@@ -239,7 +241,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   ambulance.path = map.find_path(start, end);
 
   std::vector<Event> events = {discharge};
-  std::vector<Event> dispatch_events = process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, pending_calls, map, db);
+  std::vector<Event> dispatch_events = process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, calls_pq, map, db);
   if (!dispatch_events.empty()) {
     events.insert(events.end(), dispatch_events.begin(), dispatch_events.end());
   } else {
@@ -333,6 +335,7 @@ std::vector<Event> handle_call_expired(
   std::unordered_map<int, Ambulance> &ambulances,
   std::unordered_map<int, Hospital> &hospitals,
   std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
+  std::unordered_set<int> &pending_call_ids,
   Map &map,
   Postgres &db
 ) {
@@ -349,6 +352,7 @@ std::vector<Event> handle_call_expired(
 
   call.status = CallStatus::Expired;
   db.update_call_status("Expired", call.id); 
+  pending_call_ids.erase(call.id);
 
   // if an ambulance was driving to them, redirect it
   if (call.ambulance_id.has_value()) {

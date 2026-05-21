@@ -79,6 +79,7 @@ void Simulation::add_call(Call &c) {
   c.id = db.insert_call(c); 
 
   calls[c.id] = c; 
+  pending_call_ids.insert(c.id);
 
   Event e = {
     c.simulation_id,
@@ -97,7 +98,7 @@ std::vector<Event> Simulation::create_next_event(const Event &e) {
     case EventType::CallReceived:
       return handle_call_received(e, calls, ambulances, hospitals, calls_pq, *map, db);
     case EventType::AmbulanceArriveAtScene:
-      return handle_ambulance_arrive_at_scene(e, calls, ambulances, db);
+      return handle_ambulance_arrive_at_scene(e, calls, pending_call_ids, ambulances, db);
     case EventType::TransportStart:
       return handle_transport_start(e, calls, ambulances, hospitals, *map, db);
     case EventType::AmbulanceArriveAtHospital:
@@ -109,7 +110,7 @@ std::vector<Event> Simulation::create_next_event(const Event &e) {
     case EventType::AmbulanceMove:
       return handle_ambulance_move(e, calls, ambulances, hospitals, db);
     case EventType::CallExpired:
-      return handle_call_expired(e, calls, ambulances, hospitals, calls_pq, *map, db);
+      return handle_call_expired(e, calls, ambulances, hospitals, calls_pq, pending_call_ids, *map, db);
     default:
       return {}; 
   }
@@ -136,4 +137,43 @@ Cell Simulation::get_random_road_cell() {
   std::mt19937 gen(rd());
   
   return map -> get_random_road_cell(gen);
+}
+
+std::vector<Cell> Simulation::get_current_map() {
+  std::vector<Cell> cells;
+
+  // ambulances -> calls -> roads / hospitals / stations
+  for (const auto &[id, ambulance] : ambulances) {
+    Cell c;
+    c.x = ambulance.current_x;
+    c.y = ambulance.current_y;
+    c.cell_type = CellType::Ambulance;
+    cells.push_back(c);
+  }
+  for (int call_id : pending_call_ids) {    
+    Call call = calls.at(call_id);
+    Cell cell;
+    cell.x = call.x;
+    cell.y = call.y;
+    cell.cell_type = CellType::Call;
+    cells.push_back(cell);
+    }
+  std::vector<Cell> static_map = map -> get_static_map();
+  for (Cell cell : static_map) {
+    cells.push_back(cell);
+  }
+
+  return cells; 
+}
+
+std::unordered_set<int> Simulation::get_pending_call_ids() {
+  return pending_call_ids;
+}
+
+std::unordered_map<int, Ambulance> Simulation::get_ambulances() {
+  return ambulances;
+}
+
+std::vector<Cell> Simulation::get_static_map() {
+  return map -> get_static_map();
 }

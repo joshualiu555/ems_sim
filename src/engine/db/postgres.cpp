@@ -23,6 +23,21 @@ pqxx::result Postgres::query(const std::string &sql) {
   return result;
 }
 
+std::vector<int> Postgres::get_all_simulations() {
+  auto result = query(
+    R"(
+      SELECT id
+      FROM simulations;
+    )"
+  );
+
+  std::vector<int> all_ids;
+  for (auto row : result) {
+    all_ids.push_back(row[0].as<int>());
+  }
+  return all_ids;
+}
+
 int Postgres::create_simulation() {
   pqxx::work txn(conn);
   

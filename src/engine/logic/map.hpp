@@ -27,6 +27,8 @@ class Map {
     void get_all_roads();
     Cell get_random_road_cell(std::mt19937 &gen);
 
+    std::vector<Cell> get_static_map();
+
     std::vector<Cell> find_path(Cell start, Cell end);
 
   private:

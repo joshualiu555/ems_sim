@@ -32,6 +32,7 @@ class Postgres {
 
     pqxx::result query(const std::string &sql);
 
+    std::vector<int> get_all_simulations();
     int create_simulation();
 
     void run_migrations(const std::string &dir);

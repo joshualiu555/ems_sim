@@ -4,7 +4,9 @@ enum class CellType {
   Empty,
   Road,
   Hospital,
-  Station
+  Station,
+  Ambulance,
+  Call
 };
 
 struct Cell {

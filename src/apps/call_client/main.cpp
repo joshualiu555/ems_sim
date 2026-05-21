@@ -27,10 +27,10 @@ int main() {
   asio::connect(socket, resolver.resolve("127.0.0.1", "8080"));
   std::cout << "Client connected to server" << '\n';
 
-  json create_command = {
-    {"command", "create_simulation"}
+  json create_simulation = {
+    {"create_simulation", true}
   };
-  std::string create_request= create_command.dump() + '\n';
+  std::string create_request = create_simulation.dump() + '\n';
   asio::write(socket, asio::buffer(create_request));
 
   asio::streambuf create_buffer;

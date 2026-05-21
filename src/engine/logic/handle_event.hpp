@@ -2,6 +2,7 @@
 
 #include <vector> 
 #include <unordered_map>
+#include <unordered_set>
 #include <queue>
 
 #include "simulation.hpp"
@@ -35,6 +36,7 @@ std::vector<Event> handle_call_received(
 std::vector<Event> handle_ambulance_arrive_at_scene(
   const Event &e, 
   std::unordered_map<int, Call> &calls,
+  std::unordered_set<int> &pending_call_ids,
   std::unordered_map<int, Ambulance> &ambulances, 
   Postgres &db
 );
@@ -53,7 +55,7 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   std::unordered_map<int, Call> &calls, 
   std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
-  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
+  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &calls_pq,
   Map &map,
   Postgres &db
 );
@@ -80,6 +82,7 @@ std::vector<Event> handle_call_expired(
   std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
   std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &pending_calls,
+  std::unordered_set<int> &pending_call_ids,
   Map &map,
   Postgres &db
 );

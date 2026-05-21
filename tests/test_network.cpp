@@ -80,7 +80,7 @@ TEST(NetworkIntegrationTest, ClientServerEcho) {
   socket.connect(tcp::endpoint(asio::ip::make_address("127.0.0.1"), 8000));
 
   // generate a simulation
-  json create_request = {{"command", "create_simulation"}};
+  json create_request = {{"create_simulation", true}};
   std::string create_request_string = create_request.dump() + "\n";
   asio::write(socket, asio::buffer(create_request_string));
   asio::streambuf create_response_buffer;

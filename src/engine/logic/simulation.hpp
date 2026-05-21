@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <optional>
 #include <random>
+#include <vector>
+#include <unordered_set>
 
 #include "models/call.hpp"
 #include "models/ambulance.hpp"
@@ -30,15 +32,20 @@ class Simulation {
 
     Cell get_random_road_cell();
 
+    std::vector<Cell> get_current_map();
+    std::unordered_set<int> get_pending_call_ids();
+    std::unordered_map<int, Ambulance> get_ambulances();
+    std::vector<Cell> get_static_map();
+
   private:
     int id;
 
     std::unordered_map<int, Call> calls;
+    std::unordered_set<int> pending_call_ids;
     std::unordered_map<int, Ambulance> ambulances;
     std::unordered_map<int, Hospital> hospitals;
 
     Postgres &db;
-
 
     std::priority_queue<Event> event_pq;
     std::priority_queue<Call, std::vector<Call>, std::greater<Call>> calls_pq;

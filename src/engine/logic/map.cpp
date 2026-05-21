@@ -187,6 +187,20 @@ Cell Map::get_random_road_cell(std::mt19937 &gen) {
   return all_roads[dist(gen)];
 }
 
+std::vector<Cell> Map::get_static_map() {
+  std::vector<Cell> static_map;
+
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
+      if (map[x][y].cell_type == CellType::Road || map[x][y].cell_type == CellType::Station || map[x][y].cell_type == CellType::Hospital) {
+        static_map.push_back(map[x][y]);
+      }
+    }
+  }
+
+  return static_map;
+}
+
 std::vector<Cell> Map::find_path(Cell start, Cell end) {
   if (start.x == end.x && start.y == end.y) return {};
 
