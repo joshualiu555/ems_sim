@@ -150,6 +150,20 @@ void draw_legend_item(const char *label, ImU32 color) {
     ImGui::Text("%s", label);
 };
 
+bool paused = false;
+void toggle_pause() {
+    json request = {{ 
+        paused ? "resume" : "pause", true 
+    }};
+    fetch(request);
+    paused = !paused;
+}
+
+void set_speed(double multiplier) {
+    json request = {{"set_speed", multiplier}};
+    fetch(request);
+}
+
 // Main code
 int main(int, char**)
 {
@@ -278,6 +292,25 @@ int main(int, char**)
         {
             ImGui::Begin("Control Panel");  
 
+            ImGui::Separator();
+
+            if (ImGui::Button(paused ? "Resume" : "Pause")) {
+                toggle_pause();
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("0.5x")) { 
+                set_speed(0.5); 
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("1x")) { 
+                set_speed(1.0); 
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("2x")) { 
+                set_speed(2.0); 
+            }
+
             static auto last_all_simulations_poll_time = std::chrono::steady_clock::now(); 
 
             std::string dropdown_text = (simulation_id == -1) ? "Select Simulation" : "Simulation " + std::to_string(simulation_id);
@@ -289,6 +322,7 @@ int main(int, char**)
             if (ImGui::Button("Delete Simulation")) {
                 delete_simulation(simulation_id);
                 simulation_id = -1;
+                last_seen_simulation_id = -1;
             }   
 
             if (std::chrono::duration_cast<std::chrono::seconds>(now - last_all_simulations_poll_time).count() >= 1) {

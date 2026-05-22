@@ -22,14 +22,20 @@ int main() {
   
   tick_simulations = [&](const asio::error_code& ec) {
     if (!ec) {
-      simulation_handler.tick_all_simulations();
-      
-      simulation_timer.expires_at(simulation_timer.expiry() + asio::chrono::seconds(1));
+      if (!simulation_handler.is_paused()) {
+        simulation_handler.tick_all_simulations();
+      }
+
+      simulation_timer.expires_at(
+        simulation_timer.expiry() +
+        asio::chrono::milliseconds(simulation_handler.get_tick_interval_ms())
+      );
       simulation_timer.async_wait(tick_simulations);
     }
   };
+
   simulation_timer.async_wait(tick_simulations);
-  
+
   io_context.run(); 
 
   return 0;

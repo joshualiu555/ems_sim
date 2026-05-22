@@ -3,9 +3,6 @@
 ## Features
 - Manual input
 
-- Speed control
-- Play / Pause
-
 - Save start state and replay
 
 ## Refactoring
@@ -13,7 +10,4 @@
 - Add compatability for Linux and Windows - add_simulation(), -framework
 
 ## Commit Message
-- add analytics
-- delete simulation
-- flash patient discharge
-
+- added play / pause / speed

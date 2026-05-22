@@ -18,7 +18,7 @@ int main() {
   Bounds b = {0, 29, 0, 29};
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> time_dist(0, 7); 
+  std::uniform_int_distribution<> time_dist(1, 1); 
 
   asio::io_context io_context;
   tcp::socket socket(io_context);
@@ -44,34 +44,59 @@ int main() {
   std::cout << "Started new simulation" << '\n';
 
   int current_time = 0;
-  while (true) {
-    Call c = generate_call(b, gen, simulation_id);
-    c.time = current_time;
 
-    json call_json = {
-      {"simulation_id", simulation_id},
-      {"id", c.id},
-      {"priority", c.priority},
-      {"time", c.time},
-      {"x", c.x},
-      {"y", c.y}
-    };
+  while (true) {                             
+      Call c = generate_call(b, gen, simulation_id);
+      c.time = current_time;
 
-    std::string call_string = call_json.dump() + '\n';
-    asio::write(socket, asio::buffer(call_string));
+      json call_json = {
+        {"simulation_id", simulation_id},
+        {"id", c.id},
+        {"priority", c.priority},
+        {"time", c.time},
+        {"x", c.x},
+        {"y", c.y}
+      };
 
-    asio::streambuf call_buffer;
-    asio::read_until(socket, call_buffer, '\n');
-    std::istream is(&call_buffer);
-    std::string call_response;
-    std::getline(is, call_response);
-    
-    std::cout << call_response << '\n';
+      int tick_ms = 1000; 
+      bool accepted = false;                  
+      while (!accepted) {                    
+          std::string call_string = call_json.dump() + '\n';
+          asio::write(socket, asio::buffer(call_string));
+
+          asio::streambuf call_buffer;
+          asio::read_until(socket, call_buffer, '\n');
+          std::istream is(&call_buffer);
+          std::string call_response;
+          std::getline(is, call_response);
+          std::cout << call_response << '\n';
+
+          auto response_json = json::parse(call_response);
+
+          if (response_json.contains("status") &&
+            response_json["status"] == "Simulation not found") {
+            std::cout << "Simulation deleted, shutting down\n";
+            return 0;
+          }
+
+          if (response_json.contains("status") &&
+            response_json["status"] == "Paused") {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
+          }
+
+          accepted = true;
+
+          if (response_json.contains("tick_interval_ms")) {
+            tick_ms = response_json["tick_interval_ms"].get<int>();
+          }
+      }
 
     int time_elapsed = time_dist(gen);
     current_time += time_elapsed;
-    std::this_thread::sleep_for(std::chrono::seconds(time_elapsed));
+    std::this_thread::sleep_for(std::chrono::milliseconds(time_elapsed * tick_ms));
   }
+  
 
   return 0;
 }

@@ -26,9 +26,33 @@ std::vector<int> SimulationHandler::get_all_simulations() {
 }
 
 Simulation* SimulationHandler::get_simulation(int id) {
-    auto it = simulations.find(id);
-    if (it == simulations.end()) {
-      return nullptr;
-    }
-    return it -> second.get();
+  auto it = simulations.find(id);
+  if (it == simulations.end()) {
+    return nullptr;
+  }
+  return it -> second.get();
+}
+
+void SimulationHandler::pause() { 
+  paused = true; 
+}
+void SimulationHandler::resume() { 
+  paused = false; 
+}
+bool SimulationHandler::is_paused() { 
+  return paused; 
+}
+int SimulationHandler::get_tick_interval_ms() { 
+  return tick_interval_ms; 
+}
+
+void SimulationHandler::set_speed(double multiplier) {
+  tick_interval_ms = static_cast<int>(1000.0 / multiplier);
+}
+
+void SimulationHandler::tick_all_simulations() {
+for (auto& [id, simulation_ptr] : simulations) {
+  simulation_ptr -> run(simulation_ptr -> current_time);
+  simulation_ptr -> current_time++;
+}
 }

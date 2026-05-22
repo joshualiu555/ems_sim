@@ -1,10 +1,7 @@
 #include <iostream>
-
 #include <nlohmann/json.hpp>
-
 #include "session.hpp"
 #include "logic/dispatch.hpp"
-
 #include "models/call.hpp"
 
 using json = nlohmann::json;
@@ -12,25 +9,24 @@ using json = nlohmann::json;
 std::shared_ptr<Session> Session::create(
   asio::io_context &io_context,
   SimulationHandler &simulation_handler
-) 
-  {
-    return std::shared_ptr<Session>(new Session(io_context, simulation_handler));
-  }
+) {
+  return std::shared_ptr<Session>(new Session(io_context, simulation_handler));
+}
 
 Session::Session(
   asio::io_context &io_context,
   SimulationHandler &simulation_handler
-) 
-  : socket_(io_context), 
+)
+  : socket_(io_context),
     simulation_handler(simulation_handler)
 {}
 
-tcp::socket& Session::socket() { 
-  return socket_; 
+tcp::socket& Session::socket() {
+  return socket_;
 }
 
-void Session::start() { 
-  read(); 
+void Session::start() {
+  read();
 }
 
 void Session::read() {
@@ -51,47 +47,62 @@ void Session::read() {
 
         if (request.contains("create_simulation")) {
           int simulation_id = simulation_handler.add_simulation();
-
           response["simulation_id"] = simulation_id;
           response["status"] = "Simulation created";
-
           write(response.dump() + '\n');
           return;
+
         } else if (request.contains("get_all_simulations")) {
-          std::vector<int> ids = simulation_handler.get_all_simulations(); 
-
-          json response;
+          std::vector<int> ids = simulation_handler.get_all_simulations();
           response["simulation_ids"] = ids;
-
           write(response.dump() + '\n');
+          return;
+
         } else if (request.contains("simulation_id")) {
+          if (simulation_handler.is_paused()) {
+            response["status"] = "Paused";
+            write(response.dump() + '\n');
+            return;
+          }
+
           int simulation_id = request.at("simulation_id");
           Simulation *simulation = simulation_handler.get_simulation(simulation_id);
+
+          if (!simulation) {
+            response["status"] = "Simulation not found";
+            write(response.dump() + '\n');
+            return;
+          }
 
           Call c;
           c.id = request.at("id");
           c.priority = request.at("priority");
-          c.time = simulation -> current_time;
-          
-          Cell location = simulation -> get_random_road_cell();
+          c.time = simulation->current_time;
+
+          Cell location = simulation->get_random_road_cell();
           c.x = location.x;
           c.y = location.y;
 
-          simulation -> add_call(c);
+          simulation->add_call(c);
 
           response["call_id"] = c.id;
           response["status"] = "Call added";
-
+          response["tick_interval_ms"] = simulation_handler.get_tick_interval_ms();
           write(response.dump() + '\n');
           return;
+
         } else if (request.contains("get_simulation")) {
           int simulation_id = request["get_simulation"];
           Simulation *simulation = simulation_handler.get_simulation(simulation_id);
-          
-          json response;
-          response["simulation"] = json::array(); 
-          
-          for (const Cell &c : simulation -> get_current_map()) {
+
+          if (!simulation) {
+            response["simulation"] = json::array();
+            write(response.dump() + '\n');
+            return;
+          }
+
+          response["simulation"] = json::array();
+          for (const Cell &c : simulation->get_current_map()) {
             response["simulation"].push_back({
               {"x", c.x},
               {"y", c.y},
@@ -99,20 +110,48 @@ void Session::read() {
               {"subtype", c.subtype.has_value() ? json(c.subtype.value()) : json(nullptr)}
             });
           }
-
           write(response.dump() + '\n');
+          return;
+
         } else if (request.contains("delete_simulation")) {
           int simulation_id = request["delete_simulation"];
           simulation_handler.remove_simulation(simulation_id);
           response["status"] = "Simulation deleted";
-
           write(response.dump() + '\n');
+          return;
+
         } else if (request.contains("get_analytics")) {
           int simulation_id = request["get_analytics"];
           Simulation *simulation = simulation_handler.get_simulation(simulation_id);
-          json response =  simulation -> get_analytics(simulation_id);
 
+          if (!simulation) {
+            response["error"] = "Simulation not found";
+            write(response.dump() + '\n');
+            return;
+          }
+
+          json response = simulation->get_analytics(simulation_id);
           write(response.dump() + '\n');
+          return;
+
+        } else if (request.contains("pause")) {
+          simulation_handler.pause();
+          response["status"] = "Paused";
+          write(response.dump() + '\n');
+          return;
+
+        } else if (request.contains("resume")) {
+          simulation_handler.resume();
+          response["status"] = "Resumed";
+          write(response.dump() + '\n');
+          return;
+
+        } else if (request.contains("set_speed")) {
+          double multiplier = request["set_speed"].get<double>();
+          simulation_handler.set_speed(multiplier);
+          response["status"] = "Speed set";
+          write(response.dump() + '\n');
+          return;
         }
       }
     }
@@ -125,9 +164,9 @@ void Session::write(std::string message) {
 
   asio::async_write(socket_, asio::buffer(write_message),
     [this, self](std::error_code ec, std::size_t) {
-      if (!ec) { 
+      if (!ec) {
         read();
-      } 
+      }
     }
   );
 }
