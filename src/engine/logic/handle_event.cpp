@@ -31,7 +31,7 @@ std::vector<Event> process_calls
     // died or already handled
     if (actual_call.status != CallStatus::Pending) continue;
 
-    std::optional<Dispatch> dispatch = create_dispatch(actual_call, ambulances, hospitals);
+    std::optional<Dispatch> dispatch = create_dispatch(actual_call, ambulances, hospitals, map);
     if (!dispatch) {
       still_waiting.push_back(old_call);
       continue; 

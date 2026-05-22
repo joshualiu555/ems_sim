@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
+#include <memory>
+#include <string>
 
 #include "models/call.hpp"
 #include "models/ambulance.hpp"
 #include "models/hospital.hpp"
-
+#include "models/map.hpp" 
 
 #include "logic/dispatch.hpp"
 
@@ -12,6 +14,7 @@ class DispatchTest:public::testing::Test {
     Call call;
     std::unordered_map<int, Ambulance> ambulances;
     std::unordered_map<int, Hospital> hospitals;
+    std::unique_ptr<Map> map; 
 
     int simulation_id = 1;
 
@@ -25,13 +28,17 @@ class DispatchTest:public::testing::Test {
       hospitals = {
         {1, {1, simulation_id, 0, 10, 0, 0}}
       };
+
+      map = std::make_unique<Map>(25, 25);
+      std::string layout(25 * 25, '#'); 
+      map -> deserialize(layout);
     }
 };
 
 TEST_F(DispatchTest, NoAmbulanceAvailable) {
   ambulances.clear(); 
   
-  std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals);
+  std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals, *map);
   
   EXPECT_FALSE(dispatch);
 }
@@ -39,13 +46,13 @@ TEST_F(DispatchTest, NoAmbulanceAvailable) {
 TEST_F(DispatchTest, NoHospitalAvailable) {
   hospitals.clear(); 
   
-  std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals);
+  std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals, *map);
   
   EXPECT_FALSE(dispatch);
 }
 
 TEST_F(DispatchTest, ValidDispatch) {
-  std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals);
+  std::optional<Dispatch> dispatch = create_dispatch(call, ambulances, hospitals, *map);
   
   EXPECT_TRUE(dispatch);
 }
@@ -94,7 +101,7 @@ TEST_F(DispatchTest, ClosestAmbulance) {
     {2, simulation_id, AmbulanceStatus::Available, AmbulanceType::ALS, 20, 20, 20, 20}
   };
 
-  Ambulance result = find_closest_ambulance(call, ambulances);
+  Ambulance result = find_closest_ambulance(call, ambulances, *map);
   EXPECT_EQ(result.id, 0);
 }
 
@@ -105,6 +112,6 @@ TEST_F(DispatchTest, ClosestHospital) {
     {2, simulation_id, 0, 10, 20, 20}
   };
 
-  Hospital result = find_closest_hospital(call, hospitals);
+  Hospital result = find_closest_hospital(call, hospitals, *map);
   EXPECT_EQ(result.id, 0);
 }

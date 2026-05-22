@@ -16,7 +16,6 @@
 
 - Add compatability for Linux and Windows - add_simulation(), -framework
 
-- Fix shortest path finding for nearest ambulance and hospital
-
 ## Commit Message
-
+- fix shortest path finding for nearest ambulance and hospital
+- add legend

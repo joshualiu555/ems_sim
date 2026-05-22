@@ -116,6 +116,24 @@ std::vector<Cell> get_simulation_state(int simulation_id) {
     return cells;
 }
 
+void draw_legend_item(const char *label, ImU32 color) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    
+    ImVec2 cursor = ImGui::GetCursorScreenPos();
+    int size = 16;
+
+    draw_list -> AddRectFilled(
+        cursor,
+        ImVec2(cursor.x + size, cursor.y + size),
+        color
+    );
+
+    ImGui::Dummy(ImVec2(size, size));
+    ImGui::SameLine();
+
+    ImGui::Text("%s", label);
+};
+
 // Main code
 int main(int, char**)
 {
@@ -235,7 +253,6 @@ int main(int, char**)
 
         static std::vector<int> all_ids;
         static int simulation_id = -1;
-        std::string dropdown_text = (simulation_id == -1) ? "Select Simulation" : "Simulation " + std::to_string(simulation_id);
 
         // used for both simulation state and all simulations
         auto now = std::chrono::steady_clock::now();  
@@ -246,11 +263,12 @@ int main(int, char**)
 
             static auto last_all_simulations_poll_time = std::chrono::steady_clock::now(); 
 
+            std::string dropdown_text = (simulation_id == -1) ? "Select Simulation" : "Simulation " + std::to_string(simulation_id);
+
             if (ImGui::Button("Add Simulation")) {
                 add_simulation();  
             }     
 
-            // 
             if (std::chrono::duration_cast<std::chrono::seconds>(now - last_all_simulations_poll_time).count() >= 1) {
                 last_all_simulations_poll_time = now;
                 std::thread worker([]() {
@@ -275,8 +293,22 @@ int main(int, char**)
                                     
             ImGui::End();
 
+            ImGui::Begin("Legend");
+
+            draw_legend_item("Alpha", IM_COL32(255, 204, 204, 255));
+            draw_legend_item("Echo", IM_COL32(153, 0, 0, 255));
+            draw_legend_item("ALS", IM_COL32(0, 0, 255, 255));
+            draw_legend_item("BLS", IM_COL32(173, 216, 230, 255));
+            draw_legend_item("Hospital", IM_COL32(0, 255, 0, 255));
+            draw_legend_item("Station", IM_COL32(255, 255, 0, 255));
+            draw_legend_item("Expired Call", IM_COL32(0, 0, 0, 255));
+
+            ImGui::End();
+
             ImGui::Begin("Simulation");
-    
+
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
             static std::vector<Cell> cache_cells;
             static int last_seen_simulation_id = -1;
 
@@ -297,8 +329,7 @@ int main(int, char**)
                 }
             }
 
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            ImVec2 offset = ImGui::GetCursorScreenPos();
+            ImVec2 simulation_offset = ImGui::GetCursorScreenPos();
             int size = 20;
             int gap = 2;
 
@@ -336,8 +367,8 @@ int main(int, char**)
                     float y1 = y * (size + gap);
                     float x2 = x1 + size;
                     float y2 = y1 + size;
-                    ImVec2 top_left = {offset.x + x1, offset.y + y1};
-                    ImVec2 bottom_right = {offset.x + x2, offset.y + y2};
+                    ImVec2 top_left = {simulation_offset.x + x1, simulation_offset.y + y1};
+                    ImVec2 bottom_right = {simulation_offset.x + x2, simulation_offset.y + y2};
                     
                     draw_list -> AddRectFilled(top_left, bottom_right, cell_color);
                 }
