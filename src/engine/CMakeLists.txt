@@ -10,7 +10,7 @@ add_library(engine STATIC
 
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(engine PUBLIC shared pqxx)
+target_link_libraries(engine PUBLIC shared pqxx nlohmann_json)
 
 target_compile_definitions(engine PUBLIC 
   MIGRATION_PATH="${CMAKE_SOURCE_DIR}/db/migrations"

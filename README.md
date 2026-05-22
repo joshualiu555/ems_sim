@@ -7,15 +7,13 @@
 - Play / Pause
 
 - Save start state and replay
-- Delete simulation
-
-- Analytics
 
 ## Refactoring
-- Clean up code - try / catch blocks
-
+- Clean up code - try / catch blocks; json objects; modularize files; const; using json; data structures; etc.
 - Add compatability for Linux and Windows - add_simulation(), -framework
 
 ## Commit Message
-- fix shortest path finding for nearest ambulance and hospital
-- add legend
+- add analytics
+- delete simulation
+- flash patient discharge
+

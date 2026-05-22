@@ -1,6 +1,5 @@
 #include "handle_event.hpp"
 #include "dispatch.hpp"
-#include "util/calc.hpp"
 
 #include <iostream>
 
@@ -40,6 +39,7 @@ std::vector<Event> process_calls
     db.insert_dispatch(*dispatch);
     actual_call.status = CallStatus::Dispatched;
     actual_call.ambulance_id = dispatch -> ambulance_id;
+    actual_call.hospital_id = dispatch -> hospital_id;
     db.update_call_status("Dispatched", actual_call.id);
 
     Ambulance &ambulance = ambulances[dispatch -> ambulance_id];
@@ -227,11 +227,12 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
   
   calls.at(e.call_id).status = CallStatus::Completed;
   db.update_call_status("Completed", e.call_id); 
+  db.add_call_end_time(e.time, call.id);
 
   hospitals[hospital_id].num_patients++;
   db.update_hospital(hospitals[hospital_id].num_patients, hospital_id);
 
-  int discharge_time = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 10 : 20;
+  int discharge_time = (call.priority == CallPriority::Alpha || call.priority == CallPriority::Bravo) ? 3 : 7;
   Event discharge = {e.simulation_id, e.time + discharge_time, EventType::PatientDischarged, e.call_id, std::nullopt, hospital_id, std::nullopt, std::nullopt};
 
   ambulance.ambulance_status = AmbulanceStatus::Available;
@@ -263,13 +264,19 @@ std::vector<Event> handle_ambulance_back_at_station() {
 
 std::vector<Event> handle_patient_discharged(
   const Event &e, 
+  std::unordered_map<int, Call> &calls, 
+  std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
+  std::unordered_set<int> &patient_discharged_ids,
+  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &calls_pq,
+  Map &map, 
   Postgres &db
-) 
+)
 {
   hospitals[e.hospital_id.value()].num_patients--;
   db.update_hospital(hospitals[e.hospital_id.value()].num_patients, e.hospital_id.value());
-  return {}; 
+  patient_discharged_ids.insert(e.call_id);
+  return process_calls(e.simulation_id, e.time, calls, ambulances, hospitals, calls_pq, map, db);
 }
 
 std::vector<Event> handle_ambulance_move(
@@ -351,6 +358,7 @@ std::vector<Event> handle_call_expired(
   }
   call.status = CallStatus::Expired;
   db.update_call_status("Expired", call.id); 
+  db.add_call_end_time(e.time, call.id);
   pending_call_ids.erase(call.id);
   expired_call_ids.insert(call.id);
 

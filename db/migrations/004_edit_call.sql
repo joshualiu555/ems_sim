@@ -1,0 +1,2 @@
+ALTER TABLE calls
+  ADD COLUMN end_time INTEGER;

@@ -101,6 +101,18 @@ void Session::read() {
           }
 
           write(response.dump() + '\n');
+        } else if (request.contains("delete_simulation")) {
+          int simulation_id = request["delete_simulation"];
+          simulation_handler.remove_simulation(simulation_id);
+          response["status"] = "Simulation deleted";
+
+          write(response.dump() + '\n');
+        } else if (request.contains("get_analytics")) {
+          int simulation_id = request["get_analytics"];
+          Simulation *simulation = simulation_handler.get_simulation(simulation_id);
+          json response =  simulation -> get_analytics(simulation_id);
+
+          write(response.dump() + '\n');
         }
       }
     }

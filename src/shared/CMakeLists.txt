@@ -1,6 +1,4 @@
 add_library(shared STATIC
-  io/output.cpp
-  util/calc.cpp
   util/convert.cpp
   util/generate.cpp
 )

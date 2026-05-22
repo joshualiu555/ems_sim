@@ -64,7 +64,12 @@ std::vector<Event> handle_ambulance_back_at_station();
 
 std::vector<Event> handle_patient_discharged(
   const Event &e, 
+  std::unordered_map<int, Call> &calls, 
+  std::unordered_map<int, Ambulance> &ambulances, 
   std::unordered_map<int, Hospital> &hospitals,
+  std::unordered_set<int> &patient_discharged_ids,
+  std::priority_queue<Call, std::vector<Call>, std::greater<Call>> &calls_pq,
+  Map &map, 
   Postgres &db
 );
 

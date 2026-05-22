@@ -23,6 +23,8 @@ pqxx::result Postgres::query(const std::string &sql) {
   return result;
 }
 
+
+
 std::vector<int> Postgres::get_all_simulations() {
   auto result = query(
     R"(
@@ -45,6 +47,13 @@ int Postgres::create_simulation() {
   txn.commit();
 
   return row[0].as<int>();
+}
+
+void Postgres::delete_simulation(int simulation_id) {
+  execute_params(
+    "DELETE FROM simulations WHERE id = $1",
+    simulation_id
+  );
 }
 
 bool Postgres::check_if_migration_exists(const std::string &file) {
@@ -168,6 +177,18 @@ void Postgres::update_call_status(const std::string &status, int id) {
   );
 }
 
+void Postgres::add_call_end_time(const int time, int id) {
+  execute_params(
+    R"(
+      UPDATE calls
+      SET end_time = $1
+      WHERE id = $2
+    )",
+    time,
+    id
+  );
+}
+
 void Postgres::update_hospital(int num_patients, int id) {
   execute_params(
     R"(
@@ -203,4 +224,57 @@ void Postgres::update_ambulance_location(int x, int y, int id) {
     y,
     id
   );
+}
+
+nlohmann::json Postgres::get_analytics(int simulation_id) {
+  nlohmann::json response;
+
+  auto completed_calls = query_params(
+    R"(
+      SELECT COUNT(*)
+      FROM calls
+      WHERE simulation_id = $1 AND status = 'Completed'
+    )", 
+    simulation_id 
+  );
+  
+  auto total_calls = query_params(
+    R"(
+      SELECT COUNT(*)
+      FROM calls
+      WHERE simulation_id = $1 AND (status = 'Completed' OR status = 'Expired')
+    )", 
+    simulation_id 
+  );
+
+  int comp = completed_calls[0][0].as<int>();
+  int total = total_calls[0][0].as<int>();
+
+  response["completed_calls"] = comp;
+  response["total_calls"] = total;
+  
+  // divide by 0
+  if (total > 0) {
+      response["success_rate"] = (1.0 * comp) / total;
+  } else {
+      response["success_rate"] = 0.0;
+  }
+
+  auto average_call_time = query_params(
+    R"(
+      SELECT AVG(end_time - call_time)
+      FROM calls
+      WHERE simulation_id = $1 AND status = 'Completed';
+    )", 
+    simulation_id 
+  );
+
+  // no completed calls yet
+  if (average_call_time[0][0].is_null()) {
+      response["average_call_time"] = 0.0;
+  } else {
+      response["average_call_time"] = average_call_time[0][0].as<double>();
+  }
+
+  return response;
 }

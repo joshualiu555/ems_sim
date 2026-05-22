@@ -17,7 +17,8 @@ int SimulationHandler::add_simulation() {
 }
 
 void SimulationHandler::remove_simulation(int id) {
-    simulations.erase(id);
+  simulations.erase(id);
+  db.delete_simulation(id);
 }
 
 std::vector<int> SimulationHandler::get_all_simulations() {
@@ -27,7 +28,7 @@ std::vector<int> SimulationHandler::get_all_simulations() {
 Simulation* SimulationHandler::get_simulation(int id) {
     auto it = simulations.find(id);
     if (it == simulations.end()) {
-        return nullptr;
+      return nullptr;
     }
     return it -> second.get();
 }

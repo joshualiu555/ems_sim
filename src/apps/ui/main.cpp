@@ -75,6 +75,14 @@ void add_simulation() {
     worker.detach();
 }
 
+void delete_simulation(int simulation_id) {
+    json request = {
+        {"delete_simulation", simulation_id}
+    };
+
+    fetch(request);
+}
+
 std::vector<int> get_all_simulations() {
     std::vector<int> simulation_ids;
 
@@ -114,6 +122,14 @@ std::vector<Cell> get_simulation_state(int simulation_id) {
     }
     
     return cells;
+}
+
+json get_analytics(int simulation_id) {
+    json request = {
+        {"get_analytics", simulation_id}
+    };
+
+    return fetch(request);
 }
 
 void draw_legend_item(const char *label, ImU32 color) {
@@ -253,6 +269,7 @@ int main(int, char**)
 
         static std::vector<int> all_ids;
         static int simulation_id = -1;
+        static int last_seen_simulation_id = -1;
 
         // used for both simulation state and all simulations
         auto now = std::chrono::steady_clock::now();  
@@ -268,6 +285,11 @@ int main(int, char**)
             if (ImGui::Button("Add Simulation")) {
                 add_simulation();  
             }     
+
+            if (ImGui::Button("Delete Simulation")) {
+                delete_simulation(simulation_id);
+                simulation_id = -1;
+            }   
 
             if (std::chrono::duration_cast<std::chrono::seconds>(now - last_all_simulations_poll_time).count() >= 1) {
                 last_all_simulations_poll_time = now;
@@ -301,7 +323,38 @@ int main(int, char**)
             draw_legend_item("BLS", IM_COL32(173, 216, 230, 255));
             draw_legend_item("Hospital", IM_COL32(0, 255, 0, 255));
             draw_legend_item("Station", IM_COL32(255, 255, 0, 255));
-            draw_legend_item("Expired Call", IM_COL32(0, 0, 0, 255));
+            draw_legend_item("Death", IM_COL32(0, 0, 0, 255));
+            draw_legend_item("Discharged", IM_COL32(128, 0, 128, 255));
+
+            ImGui::End();
+
+            ImGui::Begin("Analytics");
+
+            static json analytics;
+            static auto last_analytics_poll_time = std::chrono::steady_clock::now();
+            if (simulation_id != -1) {
+                if (simulation_id != last_seen_simulation_id || 
+                    std::chrono::duration_cast<std::chrono::seconds>(now - last_analytics_poll_time).count() >= 1) 
+                {
+                    last_seen_simulation_id = simulation_id;
+                    last_analytics_poll_time = now;
+
+                    std::thread worker([]() {
+                        analytics = get_analytics(simulation_id);
+
+                    });
+                    worker.detach();
+                }
+            }
+
+            if (!analytics.is_null()) {
+                ImGui::Text("Completed: %d", analytics["completed_calls"].get<int>());
+                ImGui::Text("Total: %d", analytics["total_calls"].get<int>());
+                ImGui::Text("Success Rate: %.2f%%", analytics["success_rate"].get<double>() * 100);
+                ImGui::Text("Avg Call Time: %.2f", analytics["average_call_time"].get<double>());
+            } else {
+                ImGui::Text("No data yet");
+            }
 
             ImGui::End();
 
@@ -310,7 +363,6 @@ int main(int, char**)
             ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
             static std::vector<Cell> cache_cells;
-            static int last_seen_simulation_id = -1;
 
             static auto last_simulation_state_poll_time = std::chrono::steady_clock::now();
 
@@ -324,6 +376,8 @@ int main(int, char**)
                     std::thread worker([]() {
                         auto new_cells = get_simulation_state(simulation_id);
                         cache_cells = std::move(new_cells); 
+
+
                     });
                     worker.detach();
                 }
@@ -357,6 +411,8 @@ int main(int, char**)
                                     cell_color = IM_COL32(255, 255, 0, 255); // yellow
                                 } else if (cell.cell_type == CellType::ExpiredCall) {
                                     cell_color = IM_COL32(0, 0, 0, 255); // black
+                                } else if (cell.cell_type == CellType::PatientDischarged) {
+                                    cell_color = IM_COL32(128, 0, 128, 255); // purple
                                 }
                                 break;
                             }

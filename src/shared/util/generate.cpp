@@ -10,7 +10,6 @@
 
 
 #include "generate.hpp"
-#include "calc.hpp"
 
 Ambulance generate_ambulance(const Bounds &b, std::mt19937 &gen, int simulation_id) {
   std::uniform_int_distribution<int> ambulance_type(1, 3);

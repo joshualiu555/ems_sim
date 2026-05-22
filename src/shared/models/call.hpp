@@ -30,6 +30,7 @@ struct Call {
 
   int expiration_time;
   std::optional<int> ambulance_id = std::nullopt;
+  std::optional<int> hospital_id = std::nullopt;
 
   bool operator > (const Call &other) const {
     return expiration_time > other.expiration_time;

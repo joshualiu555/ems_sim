@@ -9,6 +9,7 @@ enum class CellType {
   Station,
   Ambulance,
   Call,
+  PatientDischarged,
   ExpiredCall
 };
 

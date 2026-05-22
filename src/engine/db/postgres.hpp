@@ -3,6 +3,7 @@
 #include <string>
 
 #include <pqxx/pqxx>
+#include <nlohmann/json.hpp>
 
 #include "models/hospital.hpp"
 #include "models/ambulance.hpp"
@@ -24,16 +25,25 @@ class Postgres {
     }
     template <typename... Args>
     int return_execute_params(const std::string& sql, Args&&... args) {
-        pqxx::work txn(conn);
-        pqxx::row row = txn.exec(sql, pqxx::params(std::forward<Args>(args)...)).one_row();
-        txn.commit();
-        return row[0].as<int>();
+      pqxx::work txn(conn);
+      pqxx::row row = txn.exec(sql, pqxx::params(std::forward<Args>(args)...)).one_row();
+      txn.commit();
+      return row[0].as<int>();
     }
 
     pqxx::result query(const std::string &sql);
+    template <typename... Args>
+    pqxx::result query_params(const std::string& sql, Args&&... args) {
+      pqxx::work txn(conn);
+      pqxx::result result = txn.exec(sql, pqxx::params{std::forward<Args>(args)...});
+      txn.commit();
+
+      return result;
+    }
 
     std::vector<int> get_all_simulations();
     int create_simulation();
+    void delete_simulation(int simulation_id);
 
     void run_migrations(const std::string &dir);
 
@@ -45,9 +55,12 @@ class Postgres {
     void insert_map(int simulation_id, const std::string &layout);
 
     void update_call_status(const std::string &status, int id);
+    void add_call_end_time(const int time, int id);
     void update_hospital(int num_patients, int id);
     void update_ambulance_status(std::string status, int id);
     void update_ambulance_location(int x, int y, int id);
+
+    nlohmann::json get_analytics(int simulation_id);
 
   private:
     pqxx::connection conn;

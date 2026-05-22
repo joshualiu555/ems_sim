@@ -1,14 +1,14 @@
 #include <iostream>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include "db/postgres.hpp"
 
 #include "simulation.hpp"
 #include "map.hpp"
 #include "dispatch.hpp"
 #include "handle_event.hpp"
-#include "io/output.hpp"
-#include "util/calc.hpp"
 #include "util/generate.hpp"
 
 #include "models/node.hpp"
@@ -104,7 +104,7 @@ std::vector<Event> Simulation::create_next_event(const Event &e) {
     case EventType::AmbulanceBackAtStation:
       return handle_ambulance_back_at_station();
     case EventType::PatientDischarged:
-      return handle_patient_discharged(e, hospitals, db);
+      return handle_patient_discharged(e, calls, ambulances, hospitals, patient_discharged_ids, calls_pq, *map, db);
     case EventType::AmbulanceMove:
       return handle_ambulance_move(e, calls, ambulances, hospitals, db);
     case EventType::CallExpired:
@@ -165,12 +165,26 @@ std::vector<Cell> Simulation::get_current_map() {
     cell.cell_type = CellType::ExpiredCall;
     cells.push_back(cell);
   }
+  for (int call_id : patient_discharged_ids) {
+    Call call = calls.at(call_id);
+    
+    int hospital_id = call.hospital_id.value(); 
+    Hospital hospital = hospitals.at(hospital_id);
+
+    Cell cell;
+    cell.x = hospital.x; 
+    cell.y = hospital.y; 
+    cell.cell_type = CellType::PatientDischarged;
+    cells.push_back(cell);
+  }
+
   std::vector<Cell> static_map = map -> get_static_map();
   for (Cell cell : static_map) {
     cells.push_back(cell);
   }
 
   expired_call_ids.clear();
+  patient_discharged_ids.clear();
 
   return cells; 
 }
@@ -189,4 +203,8 @@ std::unordered_map<int, Ambulance> Simulation::get_ambulances() {
 
 std::vector<Cell> Simulation::get_static_map() {
   return map -> get_static_map();
+}
+
+nlohmann::json Simulation::get_analytics(int simulation_id) {
+  return db.get_analytics(simulation_id);
 }
