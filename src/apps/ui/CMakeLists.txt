@@ -14,6 +14,8 @@ if (APPLE)
     "-framework IOKit" 
     "-framework CoreVideo"
   )
+elseif (WIN32)
+  target_link_libraries(ui PRIVATE opengl32)
 elseif (UNIX)
   target_link_libraries(ui PRIVATE
     GL

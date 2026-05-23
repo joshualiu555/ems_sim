@@ -47,29 +47,127 @@ static void glfw_error_callback(int error, const char* description)
 using asio::ip::tcp;
 using json = nlohmann::json;
 
+#ifdef _WIN32
+
+#include <windows.h>
+
+static HANDLE server_process = nullptr;
+
+static STARTUPINFOA make_silent_si() {
+    HANDLE devnull = CreateFileA("NUL", GENERIC_WRITE, FALSE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    STARTUPINFOA si = { 
+        sizeof(si) 
+    };
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdInput = nullptr;
+    si.hStdOutput = devnull;
+    si.hStdError = devnull;
+    return si;
+}
+
+static void start_server() {
+    STARTUPINFOA si = make_silent_si();
+    PROCESS_INFORMATION pi;
+    char command[] = "build\\src\\apps\\dispatch_server\\dispatch_server.exe";
+    if (CreateProcessA(nullptr, command, nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi)) {
+        server_process = pi.hProcess;
+        CloseHandle(pi.hThread);
+    }
+    if (si.hStdOutput) CloseHandle(si.hStdOutput);
+}
+static void kill_server() {
+    if (server_process) {
+        TerminateProcess(server_process, 0);
+        CloseHandle(server_process);
+        server_process = nullptr;
+    }
+}
+static void spawn_call_client(int simulation_id = -1) {
+    STARTUPINFOA si = make_silent_si();
+    PROCESS_INFORMATION pi;
+    std::string command = "build\\src\\apps\\call_client\\call_client.exe";
+    if (simulation_id != -1) command += " --simulation-id " + std::to_string(simulation_id);
+    CreateProcessA(nullptr, command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    if (si.hStdOutput) CloseHandle(si.hStdOutput);
+}
+
+#else
+
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+
+static void silence_child() {
+    int devnull = open("/dev/null", O_WRONLY);
+    if (devnull >= 0) {
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        close(devnull);
+    }
+}
+
+static pid_t server_pid = -1;
+
+static void start_server() {
+    server_pid = fork();
+    if (server_pid == 0) {
+        silence_child();
+        execlp("./build/src/apps/dispatch_server/dispatch_server", "dispatch_server", nullptr);
+        _exit(1);
+    }
+}
+static void kill_server() {
+    if (server_pid > 0) {
+        kill(server_pid, SIGTERM);
+        waitpid(server_pid, nullptr, 0);
+        server_pid = -1;
+    }
+}
+static void spawn_call_client(int simulation_id = -1) {
+    pid_t pid = fork();
+    if (pid == 0) {
+        silence_child();
+        if (simulation_id == -1) {
+            execlp("./build/src/apps/call_client/call_client", "call_client", nullptr);
+        } else {
+            std::string id_str = std::to_string(simulation_id);
+            execlp("./build/src/apps/call_client/call_client", "call_client", "--simulation-id", id_str.c_str(), nullptr);
+        }
+        _exit(1);
+    }
+}
+
+#endif
+
 json fetch(const json& request_payload) {
-    asio::io_context io_context;
-    tcp::socket socket(io_context);
-    tcp::resolver resolver(io_context);
-    asio::connect(socket, resolver.resolve("127.0.0.1", "8080"));
+    try {
+        asio::io_context io_context;
+        tcp::socket socket(io_context);
+        tcp::resolver resolver(io_context);
+        asio::connect(socket, resolver.resolve("127.0.0.1", "8080"));
 
-    std::string request_str = request_payload.dump() + '\n';
-    asio::write(socket, asio::buffer(request_str));
+        std::string request_str = request_payload.dump() + '\n';
+        asio::write(socket, asio::buffer(request_str));
 
-    asio::streambuf buffer;
-    asio::read_until(socket, buffer, '\n');
-    
-    std::istream is(&buffer);
-    std::string response_str;
-    std::getline(is, response_str);
+        asio::streambuf buffer;
+        asio::read_until(socket, buffer, '\n');
 
-    return json::parse(response_str);
+        std::istream is(&buffer);
+        std::string response_str;
+        std::getline(is, response_str);
+
+        return json::parse(response_str);
+    } catch (const std::exception&) {
+        return json{};
+    }
 }
 
 void add_simulation() {
-    std::thread worker([]() {
-        // adding & returns call client immediately
-        std::system("./build/src/apps/call_client/call_client &");
+    std::thread worker([]() { 
+        spawn_call_client(); 
     });
     
     worker.detach();
@@ -172,8 +270,8 @@ std::vector<int> get_saved_simulations() {
     return {};
 }
 
-void save_simulation(int sim_id) {
-    json request = {{"save_simulation", sim_id}};
+void save_simulation(int simulation_id) {
+    json request = {{"save_simulation", simulation_id}};
     fetch(request);
 }
 
@@ -192,6 +290,9 @@ int create_custom_simulation(const std::string& grid) {
 // Main code
 int main(int, char**)
 {
+    start_server();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -375,7 +476,7 @@ int main(int, char**)
                 ImGui::EndCombo();
             }
 
-                        if (simulation_id != -1) {
+                if (simulation_id != -1) {
                 if (ImGui::Button("Save")) {
                     int sid = simulation_id;
                     std::thread([sid]() { save_simulation(sid); }).detach();
@@ -475,8 +576,7 @@ int main(int, char**)
                         int new_id = create_custom_simulation(stripped);
                         if (new_id != -1) {
                             simulation_id = new_id;
-                            std::string command = "./build/src/apps/call_client/call_client --simulation-id " + std::to_string(new_id) + " &";
-                            std::system(command.c_str());
+                            spawn_call_client(new_id);
                         }
                     }).detach();
                     custom_status = "Generating...";
@@ -629,6 +729,8 @@ int main(int, char**)
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    kill_server();
 
     return 0;
 }
