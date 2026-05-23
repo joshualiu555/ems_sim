@@ -240,7 +240,8 @@ std::vector<Event> handle_ambulance_arrive_at_hospital(
 
   ambulance.path.clear();
   Cell start = {ambulance.current_x, ambulance.current_y, CellType::Road}; 
-  Cell end = {ambulance.station_x, ambulance.station_y, CellType::Station};
+  CellType ct = (ambulance.ambulance_type == AmbulanceType::ALS) ? CellType::ALSStation : CellType::BLSStation;
+  Cell end = {ambulance.station_x, ambulance.station_y, ct};
   ambulance.path = map.find_path(start, end);
 
   std::vector<Event> events = {discharge};
@@ -376,8 +377,9 @@ std::vector<Event> handle_call_expired(
       }
 
       // no new call so return back to station
+      CellType ct = (ambulance.ambulance_type == AmbulanceType::ALS) ? CellType::ALSStation : CellType::BLSStation;
       Cell start = {ambulance.current_x, ambulance.current_y, CellType::Road};
-      Cell end = {ambulance.station_x, ambulance.station_y, CellType::Station};
+      Cell end = {ambulance.station_x, ambulance.station_y, ct};
       ambulance.path = map.find_path(start, end);
 
       if (ambulance.path.empty()) {

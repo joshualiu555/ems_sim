@@ -117,7 +117,7 @@ void Map::create_side_roads(double branch_chance, int min_length, int max_length
       cy += dy[dir];
 
       if (cx < 0 || cx >= width || cy < 0 || cy >= height || 
-          map[cx][cy].cell_type == CellType::Hospital || map[cx][cy].cell_type == CellType::Station) {
+          map[cx][cy].cell_type == CellType::Hospital || map[cx][cy].cell_type == CellType::ALSStation || map[cx][cy].cell_type == CellType::BLSStation) {
             break;
           }
 
@@ -134,7 +134,8 @@ std::string Map::serialize() {
       if (map[x][y].cell_type == CellType::Empty) layout_str += '.';
       else if (map[x][y].cell_type == CellType::Road) layout_str += '#';
       else if (map[x][y].cell_type == CellType::Hospital) layout_str += 'H';
-      else if (map[x][y].cell_type == CellType::Station) layout_str += 'A';
+      else if (map[x][y].cell_type == CellType::ALSStation) layout_str += 'A';
+      else if (map[x][y].cell_type == CellType::BLSStation) layout_str += 'B';
     }
   }
   return layout_str;
@@ -152,7 +153,8 @@ void Map::deserialize(const std::string& layout) {
       if (c == '.') map[x][y].cell_type = CellType::Empty;
       else if (c == '#') map[x][y].cell_type = CellType::Road;
       else if (c == 'H') map[x][y].cell_type = CellType::Hospital;
-      else if (c == 'A') map[x][y].cell_type = CellType::Station;
+      else if (c == 'A') map[x][y].cell_type = CellType::ALSStation;
+      else if (c == 'B') map[x][y].cell_type = CellType::BLSStation;
     }
   }
 
@@ -180,7 +182,7 @@ std::vector<Cell> Map::get_static_map() {
 
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
-      if (map[x][y].cell_type == CellType::Road || map[x][y].cell_type == CellType::Station || map[x][y].cell_type == CellType::Hospital) {
+      if (map[x][y].cell_type == CellType::Road || map[x][y].cell_type == CellType::ALSStation || map[x][y].cell_type == CellType::BLSStation || map[x][y].cell_type == CellType::Hospital) {
         static_map.push_back(map[x][y]);
       }
     }

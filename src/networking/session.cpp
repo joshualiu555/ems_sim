@@ -152,6 +152,27 @@ void Session::read() {
           response["status"] = "Speed set";
           write(response.dump() + '\n');
           return;
+
+        } else if (request.contains("save_simulation")) {
+          int simulation_id = request["save_simulation"];
+          int save_id = simulation_handler.save_simulation(simulation_id);
+          response["save_id"] = save_id;
+          response["status"] = "Simulation saved";
+          write(response.dump() + '\n');
+          return;
+
+        } else if (request.contains("get_saved_simulations")) {
+          response["saved_simulation_ids"] = simulation_handler.get_saved_simulations();
+          write(response.dump() + '\n');
+          return;
+
+        } else if (request.contains("restore_simulation")) {
+          int saved_id = request["restore_simulation"];
+          int new_simulation_id = simulation_handler.restore_simulation(saved_id);
+          response["simulation_id"] = new_simulation_id;
+          response["status"] = "Simulation restored";
+          write(response.dump() + '\n');
+          return;
         }
       }
     }

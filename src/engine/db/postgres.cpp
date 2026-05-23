@@ -226,6 +226,66 @@ void Postgres::update_ambulance_location(int x, int y, int id) {
   );
 }
 
+int Postgres::save_simulation(int simulation_id) {
+  auto result = query_params(
+    R"(
+      SELECT layout 
+      FROM maps 
+      WHERE simulation_id = $1
+    )", 
+    simulation_id
+  );
+  std::string layout = result[0][0].as<std::string>();
+
+  int save_id = return_execute_params(
+    R"(
+      INSERT INTO saved_simulations (layout) 
+      VALUES ($1) 
+      RETURNING id
+    )", 
+    layout
+  );
+
+  execute_params(
+    R"(
+      INSERT INTO saved_calls (saved_simulation_id, original_call_id, call_time, priority, x, y)
+      SELECT $1, id, call_time, priority, x, y 
+      FROM calls 
+      WHERE simulation_id = $2
+    )",
+    save_id, 
+    simulation_id
+  );
+
+  return save_id;
+}
+
+std::vector<int> Postgres::get_saved_simulations() {
+  auto result = query(
+    R"(
+      SELECT id 
+      FROM saved_simulations 
+      ORDER BY id DESC
+    )"
+  );
+  std::vector<int> ids;
+  for (const auto &row : result) {
+    ids.push_back(row[0].as<int>());
+  }
+  return ids;
+}
+
+std::string Postgres::get_saved_layout(int saved_id) {
+  auto result = query_params(
+    R"(SELECT layout 
+      FROM saved_simulations 
+      WHERE id = $1
+    )", 
+    saved_id
+  );
+  return result[0][0].as<std::string>();
+}
+
 nlohmann::json Postgres::get_analytics(int simulation_id) {
   nlohmann::json response;
 

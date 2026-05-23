@@ -164,6 +164,25 @@ void set_speed(double multiplier) {
     fetch(request);
 }
 
+std::vector<int> get_saved_simulations() {
+    json request = {{"get_saved_simulations", true}};
+    json response = fetch(request);
+    if (response.contains("saved_simulation_ids"))
+        return response["saved_simulation_ids"].get<std::vector<int>>();
+    return {};
+}
+
+void save_simulation(int sim_id) {
+    json request = {{"save_simulation", sim_id}};
+    fetch(request);
+}
+
+int restore_simulation(int saved_id) {
+    json request = {{"restore_simulation", saved_id}};
+    json response = fetch(request);
+    return response.value("simulation_id", -1);
+}
+
 // Main code
 int main(int, char**)
 {
@@ -284,6 +303,9 @@ int main(int, char**)
         static std::vector<int> all_ids;
         static int simulation_id = -1;
         static int last_seen_simulation_id = -1;
+        static std::vector<int> saved_ids;
+        static int selected_save_id = -1;
+        static auto last_saved_sims_poll_time = std::chrono::steady_clock::now();
 
         // used for both simulation state and all simulations
         auto now = std::chrono::steady_clock::now();  
@@ -345,6 +367,44 @@ int main(int, char**)
                 }
     
                 ImGui::EndCombo();
+            }
+
+                        if (simulation_id != -1) {
+                if (ImGui::Button("Save")) {
+                    int sid = simulation_id;
+                    std::thread([sid]() { save_simulation(sid); }).detach();
+                }
+            }
+
+            ImGui::Separator();
+
+            if (std::chrono::duration_cast<std::chrono::seconds>(now - last_saved_sims_poll_time).count() >= 1) {
+                last_saved_sims_poll_time = now;
+                std::thread worker([]() {
+                    saved_ids = get_saved_simulations();
+                });
+                worker.detach();
+            }
+
+            std::string restore_label = (selected_save_id == -1)
+                ? "Select Save" : "Save " + std::to_string(selected_save_id);
+            if (ImGui::BeginCombo("##restore", restore_label.c_str())) {
+                for (int sid : saved_ids) {
+                    bool sel = (selected_save_id == sid);
+                    if (ImGui::Selectable(("Save " + std::to_string(sid)).c_str(), sel))
+                        selected_save_id = sid;
+                    if (sel) ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::SameLine();
+            if (selected_save_id != -1 && ImGui::Button("Restore")) {
+                int rsid = selected_save_id;
+                std::thread([rsid]() {
+                    int new_id = restore_simulation(rsid);
+                    simulation_id = new_id;
+                }).detach();
             }
                                     
             ImGui::End();
@@ -441,7 +501,7 @@ int main(int, char**)
                                     else if (cell.subtype == 1) cell_color = IM_COL32(173, 216, 230, 255); // bls
                                 } else if (cell.cell_type == CellType::Hospital) {
                                     cell_color = IM_COL32(0, 255, 0, 255); // green
-                                } else if (cell.cell_type == CellType::Station) {
+                                } else if (cell.cell_type == CellType::ALSStation || cell.cell_type == CellType::BLSStation) {
                                     cell_color = IM_COL32(255, 255, 0, 255); // yellow
                                 } else if (cell.cell_type == CellType::ExpiredCall) {
                                     cell_color = IM_COL32(0, 0, 0, 255); // black

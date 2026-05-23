@@ -50,6 +50,21 @@ void SimulationHandler::set_speed(double multiplier) {
   tick_interval_ms = static_cast<int>(1000.0 / multiplier);
 }
 
+int SimulationHandler::save_simulation(int sim_id) {
+  return db.save_simulation(sim_id);
+}
+
+int SimulationHandler::restore_simulation(int saved_id) {
+  int id = db.create_simulation();
+  simulations[id] = std::make_unique<Simulation>(id, db);
+  simulations[id] -> init_from_save(saved_id);
+  return id;
+}
+
+std::vector<int> SimulationHandler::get_saved_simulations() {
+  return db.get_saved_simulations();
+}
+
 void SimulationHandler::tick_all_simulations() {
 for (auto& [id, simulation_ptr] : simulations) {
   simulation_ptr -> run(simulation_ptr -> current_time);

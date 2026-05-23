@@ -21,6 +21,10 @@ class SimulationHandler {
     std::vector<int> get_all_simulations();
     Simulation *get_simulation(int id);
 
+    int save_simulation(int sim_id);
+    int restore_simulation(int saved_id);
+    std::vector<int> get_saved_simulations();
+
     void tick_all_simulations();
 
   private:

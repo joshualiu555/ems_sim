@@ -62,6 +62,10 @@ class Postgres {
 
     nlohmann::json get_analytics(int simulation_id);
 
+    int save_simulation(int simulation_id);
+    std::vector<int> get_saved_simulations();
+    std::string get_saved_layout(int saved_id);
+
   private:
     pqxx::connection conn;
 

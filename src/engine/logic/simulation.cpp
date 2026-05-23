@@ -6,10 +6,10 @@
 #include "db/postgres.hpp"
 
 #include "simulation.hpp"
+#include "util/convert.hpp"
 #include "map.hpp"
 #include "dispatch.hpp"
 #include "handle_event.hpp"
-#include "util/generate.hpp"
 
 #include "models/node.hpp"
 
@@ -30,14 +30,18 @@ void Simulation::init(int width, int height, int num_ambulances, int num_hospita
   map -> init_map();
   
   for (int i = 0; i < num_ambulances; i++) {
-    // Notice the arrow instead of the dot!
-    Cell c = map -> place_medical_cells(CellType::Station, gen);
+    std::uniform_int_distribution<int> ambulance_type(1, 3);
+    int ambulance_type_range = ambulance_type(gen);
+    AmbulanceType at = (ambulance_type_range == 1) ? AmbulanceType::BLS : AmbulanceType::ALS;
+    CellType ct = (ambulance_type_range == 1) ? CellType::BLSStation : CellType::ALSStation;
+
+    Cell c = map -> place_medical_cells(ct, gen);
     
     Ambulance a;
     a.id = 0;
     a.simulation_id = this -> id;
     a.ambulance_status = AmbulanceStatus::Available;
-    a.ambulance_type = (gen() % 2 == 0) ? AmbulanceType::BLS : AmbulanceType::ALS;
+    a.ambulance_type = at;
     a.station_x = c.x;
     a.station_y = c.y;
     a.current_x = c.x;
@@ -69,6 +73,69 @@ void Simulation::init(int width, int height, int num_ambulances, int num_hospita
   db.insert_map(this -> id, layout);
 
   map -> get_all_roads();
+}
+
+void Simulation::init_from_save(int saved_id) {
+  std::string layout = db.get_saved_layout(saved_id);
+
+  map = std::make_unique<Map>(30, 30);
+  map -> deserialize(layout);
+
+  for (const Cell &cell : map -> get_static_map()) {
+    if (cell.cell_type == CellType::Hospital) {
+      Hospital h;
+      h.id = 0; h.simulation_id = id;
+      h.num_patients = 0; h.capacity = 10;
+      h.x = cell.x; h.y = cell.y;
+      h.id = db.insert_hospital(h);
+      hospitals[h.id] = h;
+    } else if (cell.cell_type == CellType::ALSStation || cell.cell_type == CellType::BLSStation) {
+      Ambulance a;
+      a.id = 0; a.simulation_id = id;
+      a.ambulance_status = AmbulanceStatus::Available;
+      a.ambulance_type = (cell.cell_type == CellType::ALSStation) ? AmbulanceType::ALS : AmbulanceType::BLS;
+      a.station_x = cell.x; a.station_y = cell.y;
+      a.current_x = cell.x; a.current_y = cell.y;
+      a.id = db.insert_ambulance(a);
+      ambulances[a.id] = a;
+    }
+  }
+
+  db.insert_map(id, layout);
+
+  auto saved = db.query_params(
+    R"(
+      SELECT call_time, priority, x, y 
+      FROM saved_calls
+      WHERE saved_simulation_id = $1 
+      ORDER BY call_time
+    )", 
+    saved_id
+  );
+
+  for (const auto &row : saved) {
+    Call c;
+    c.id = 0;
+    c.simulation_id = id;
+    c.time = row[0].as<int>();
+    c.priority = call_priority_from_string(row[1].as<std::string>());
+    c.x = static_cast<int>(row[2].as<double>());
+    c.y = static_cast<int>(row[3].as<double>());
+    c.status = CallStatus::Pending;
+    c.expiration_time = 0;
+
+    c.id = db.insert_call(c);
+    calls[c.id] = c;
+    pending_call_ids.insert(c.id);
+
+    Event e = {
+      id, 
+      c.time, 
+      EventType::CallReceived, 
+      c.id,
+      std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+    event_pq.push(e);
+  }
 }
 
 void Simulation::add_call(Call &c) {
@@ -187,14 +254,6 @@ std::vector<Cell> Simulation::get_current_map() {
   patient_discharged_ids.clear();
 
   return cells; 
-}
-
-std::unordered_set<int> Simulation::get_pending_call_ids() {
-  return pending_call_ids;
-}
-
-std::unordered_set<int> Simulation::get_expired_call_ids() {
-  return expired_call_ids;
 }
 
 std::unordered_map<int, Ambulance> Simulation::get_ambulances() {

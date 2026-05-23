@@ -28,6 +28,7 @@ class Simulation {
     );
 
     void init(int width, int height, int num_ambulances, int num_hospitals);
+    void init_from_save(int saved_id);
 
     void add_call(Call &c);
     void run(int current_time);
@@ -35,9 +36,6 @@ class Simulation {
     Cell get_random_road_cell();
 
     std::vector<Cell> get_current_map();
-    std::unordered_set<int> get_pending_call_ids();
-    std::unordered_set<int> get_expired_call_ids();
-    std::unordered_set<int> get_patient_discharged_ids();
     std::unordered_map<int, Ambulance> get_ambulances();
     std::vector<Cell> get_static_map();
 
