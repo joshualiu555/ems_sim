@@ -17,6 +17,7 @@ class SimulationHandler {
     int get_tick_interval_ms();      
 
     int add_simulation();
+    int add_custom_simulation(const std::string& grid);
     void remove_simulation(int id);
     std::vector<int> get_all_simulations();
     Simulation *get_simulation(int id);

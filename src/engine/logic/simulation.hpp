@@ -28,6 +28,7 @@ class Simulation {
     );
 
     void init(int width, int height, int num_ambulances, int num_hospitals);
+    void init_custom(const std::string& grid);
     void init_from_save(int saved_id);
 
     void add_call(Call &c);

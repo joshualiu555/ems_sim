@@ -15,6 +15,7 @@ class Map {
 
     void init_map();
     Cell place_medical_cells(CellType ct, std::mt19937 &gen);
+    Cell place_cell_at(CellType ct, int x, int y);
     // connect medical points
     void create_main_roads();
     // one-off roads

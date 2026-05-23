@@ -173,6 +173,14 @@ void Session::read() {
           response["status"] = "Simulation restored";
           write(response.dump() + '\n');
           return;
+
+        } else if (request.contains("create_custom_simulation")) {
+          std::string grid = request["create_custom_simulation"];
+          int simulation_id = simulation_handler.add_custom_simulation(grid);
+          response["simulation_id"] = simulation_id;
+          response["status"] = "Simulation created";
+          write(response.dump() + '\n');
+          return;
         }
       }
     }

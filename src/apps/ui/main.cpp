@@ -183,6 +183,12 @@ int restore_simulation(int saved_id) {
     return response.value("simulation_id", -1);
 }
 
+int create_custom_simulation(const std::string& grid) {
+    json request = {{"create_custom_simulation", grid}};
+    json response = fetch(request);
+    return response.value("simulation_id", -1);
+}
+
 // Main code
 int main(int, char**)
 {
@@ -407,6 +413,80 @@ int main(int, char**)
                 }).detach();
             }
                                     
+            ImGui::End();
+
+            ImGui::Begin("Custom Simulation");
+
+            static char grid_buffer[930] = {};
+            static bool grid_initialized = false;
+            static std::string custom_status;
+
+            if (!grid_initialized) {
+                int position = 0;
+                for (int row = 0; row < 30; row++) {
+                    for (int col = 0; col < 30; col++) {
+                        grid_buffer[position++] = '.';
+                    }
+                    if (row < 29) {
+                        grid_buffer[position++] = '\n';
+                    }
+                }
+                grid_buffer[position] = '\0';
+                grid_initialized = true;
+            }
+
+            ImGui::Text("A=ALS  B=BLS  H=Hospital  .=empty");
+            ImGui::InputTextMultiline("##customgrid", grid_buffer, sizeof(grid_buffer), ImVec2(0, 300));
+
+            if (ImGui::Button("Generate")) {
+                std::string raw(grid_buffer);
+                std::string stripped;
+                stripped.reserve(900);
+                for (char c : raw) {
+                    if (c != '\n' && c != '\r') {
+                        stripped += (char)toupper(c);
+                    }
+                }
+
+                bool valid = true;
+                custom_status.clear();
+
+                if (stripped.size() != 900) {
+                    custom_status = "Error: grid must have exactly 900 non-newline characters (got " + std::to_string(stripped.size()) + ")";
+                    valid = false;
+                }
+                if (valid) {
+                    bool has_ambulance = false, has_hospital = false;
+                    for (char c : stripped) {
+                        if (c != '.' && c != 'A' && c != 'B' && c != 'H') {
+                            custom_status = std::string("Error: invalid character '") + c + "' (use A, B, H, or .)";
+                            valid = false;
+                            break;
+                        }
+                        if (c == 'A' || c == 'B') has_ambulance = true;
+                        if (c == 'H') has_hospital = true;
+                    }
+                    if (valid && !has_ambulance) { custom_status = "Error: place at least one ambulance (A or B)"; valid = false; }
+                    if (valid && !has_hospital) { custom_status = "Error: place at least one hospital (H)"; valid = false; }
+                }
+
+                if (valid) {
+                    std::thread([stripped]() {
+                        int new_id = create_custom_simulation(stripped);
+                        if (new_id != -1) {
+                            simulation_id = new_id;
+                            std::string command = "./build/src/apps/call_client/call_client --simulation-id " + std::to_string(new_id) + " &";
+                            std::system(command.c_str());
+                        }
+                    }).detach();
+                    custom_status = "Generating...";
+                }
+            }
+
+            if (!custom_status.empty()) {
+                ImGui::TextUnformatted(custom_status.c_str());
+            }
+
             ImGui::End();
 
             ImGui::Begin("Legend");

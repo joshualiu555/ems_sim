@@ -39,6 +39,13 @@ Cell Map::place_medical_cells(CellType ct, std::mt19937 &gen) {
   return c;
 }
 
+Cell Map::place_cell_at(CellType ct, int x, int y) {
+  map[x][y].cell_type = ct;
+  Cell c = map[x][y];
+  medical_cells.push_back(c);
+  return c;
+}
+
 void Map::draw_road(Cell a, Cell b) {
   int x_dir = (a.x < b.x) ? 1 : -1;
   for (int x = a.x; x != b.x; x += x_dir) {

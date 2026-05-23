@@ -16,6 +16,13 @@ int SimulationHandler::add_simulation() {
   return id;
 }
 
+int SimulationHandler::add_custom_simulation(const std::string& grid) {
+  int id = db.create_simulation();
+  simulations[id] = std::make_unique<Simulation>(id, db);
+  simulations[id] -> init_custom(grid);
+  return id;
+}
+
 void SimulationHandler::remove_simulation(int id) {
   simulations.erase(id);
   db.delete_simulation(id);

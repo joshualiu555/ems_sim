@@ -14,34 +14,43 @@
 using asio::ip::tcp;
 using json = nlohmann::json;
 
-int main() {
+int main(int argc, char* argv[]) {
+  int simulation_id = -1;
+  for (int i = 1; i < argc - 1; i++) {
+    if (std::string(argv[i]) == "--simulation-id") {
+      simulation_id = std::stoi(argv[i + 1]);
+    }
+  }
+
   Bounds b = {0, 29, 0, 29};
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> time_dist(1, 1); 
+  std::uniform_int_distribution<> time_dist(1, 1);
 
   asio::io_context io_context;
   tcp::socket socket(io_context);
   tcp::resolver resolver(io_context);
-  
+
   asio::connect(socket, resolver.resolve("127.0.0.1", "8080"));
-  std::cout << "Client connected to server" << '\n';
+  std::cout << "Client connected" << '\n';
 
-  json create_simulation = {
-    {"create_simulation", true}
-  };
-  std::string create_request = create_simulation.dump() + '\n';
-  asio::write(socket, asio::buffer(create_request));
+  if (simulation_id == -1) {
+    json create_simulation = {
+      {"create_simulation", true}
+    };
+    std::string create_request = create_simulation.dump() + '\n';
+    asio::write(socket, asio::buffer(create_request));
 
-  asio::streambuf create_buffer;
-  asio::read_until(socket, create_buffer, '\n');
-  std::istream create_is(&create_buffer);
-  std::string create_response;
-  std::getline(create_is, create_response);
+    asio::streambuf create_buffer;
+    asio::read_until(socket, create_buffer, '\n');
+    std::istream create_is(&create_buffer);
+    std::string create_response;
+    std::getline(create_is, create_response);
 
-  int simulation_id = json::parse(create_response)["simulation_id"];
-  
-  std::cout << "Started new simulation" << '\n';
+    simulation_id = json::parse(create_response)["simulation_id"];
+  }
+
+  std::cout << "Started simulation" << '\n';
 
   int current_time = 0;
 
@@ -75,7 +84,7 @@ int main() {
 
           if (response_json.contains("status") &&
             response_json["status"] == "Simulation not found") {
-            std::cout << "Simulation deleted, shutting down\n";
+            std::cout << "Simulation deleted" << '\n';
             return 0;
           }
 

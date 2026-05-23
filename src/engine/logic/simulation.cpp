@@ -58,12 +58,64 @@ void Simulation::init(int width, int height, int num_ambulances, int num_hospita
     h.id = 0; 
     h.simulation_id = this -> id;
     h.num_patients = 0;
-    h.capacity = 10;
+    h.capacity = 5;
     h.x = c.x;
     h.y = c.y;
 
     h.id = db.insert_hospital(h); 
     this -> hospitals[h.id] = h; 
+  }
+
+  map -> create_main_roads();
+  map -> create_side_roads(0.3, 2, 6, gen);
+
+  std::string layout = map -> serialize();
+  db.insert_map(this -> id, layout);
+
+  map -> get_all_roads();
+}
+
+void Simulation::init_custom(const std::string& grid) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  map = std::make_unique<Map>(30, 30);
+  map -> init_map();
+
+  for (int i = 0; i < (int)grid.size() && i < 900; i++) {
+    char ch = grid[i];
+    int x = i % 30;
+    int y = i / 30;
+
+    if (ch == 'A' || ch == 'B') {
+      AmbulanceType at = (ch == 'A') ? AmbulanceType::ALS : AmbulanceType::BLS;
+      CellType ct = (ch == 'A') ? CellType::ALSStation : CellType::BLSStation;
+      Cell c = map -> place_cell_at(ct, x, y);
+
+      Ambulance a;
+      a.id = 0;
+      a.simulation_id = this->id;
+      a.ambulance_status = AmbulanceStatus::Available;
+      a.ambulance_type = at;
+      a.station_x = c.x;
+      a.station_y = c.y;
+      a.current_x = c.x;
+      a.current_y = c.y;
+      a.id = db.insert_ambulance(a);
+      this->ambulances[a.id] = a;
+    } else if (ch == 'H') {
+      Cell c = map->place_cell_at(CellType::Hospital, x, y);
+
+      Hospital h;
+      h.id = 0;
+      h.simulation_id = this->id;
+      h.num_patients = 0;
+      h.capacity = 5;
+      h.x = c.x;
+      h.y = c.y;
+      h.id = db.insert_hospital(h);
+      this->hospitals[h.id] = h;
+    }
   }
 
   map -> create_main_roads();
@@ -85,7 +137,8 @@ void Simulation::init_from_save(int saved_id) {
     if (cell.cell_type == CellType::Hospital) {
       Hospital h;
       h.id = 0; h.simulation_id = id;
-      h.num_patients = 0; h.capacity = 10;
+      h.num_patients = 0; 
+      h.capacity = 5;
       h.x = cell.x; h.y = cell.y;
       h.id = db.insert_hospital(h);
       hospitals[h.id] = h;
